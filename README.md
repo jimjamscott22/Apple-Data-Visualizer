@@ -16,6 +16,28 @@ Parser, import persistence, and sleep analytics are the next implementation step
 
 ## Run
 
+### With uv
+
+1. Install dependencies and create the project environment:
+
+```bash
+uv sync
+```
+
+2. Launch the app:
+
+```bash
+uv run apple-data-visualizer
+```
+
+You can also run the existing module entrypoint directly:
+
+```bash
+uv run python main.py
+```
+
+### With pip/venv
+
 1. Create and activate a Python 3 virtual environment.
 2. Install dependencies:
 
