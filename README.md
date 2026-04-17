@@ -30,6 +30,26 @@ uv sync
 uv run apple-data-visualizer
 ```
 
+### Linux (Ubuntu) Qt runtime dependency
+
+If you see an error about the Qt platform plugin `xcb` not loading, install the missing runtime dependency:
+
+```bash
+sudo apt update && sudo apt install -y libxcb-cursor0
+```
+
+Then run the app again:
+
+```bash
+uv run apple-data-visualizer
+```
+
+If needed, install additional common Qt xcb dependencies:
+
+```bash
+sudo apt install -y libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xinput0 libegl1 libgl1-mesa-glx
+```
+
 You can also run the existing module entrypoint directly:
 
 ```bash
