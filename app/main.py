@@ -9,6 +9,7 @@ from app.database.manager import DatabaseManager
 from app.parser.health_data_parser import HealthDataParser
 from app.services.dashboard_controller import DashboardController
 from app.services.import_service import ImportService
+from app.services.sleep_analysis_service import SleepAnalysisService
 from app.theme import APP_STYLESHEET
 from app.ui.main_window import MainWindow
 
@@ -26,6 +27,7 @@ def main() -> int:
     import_service = ImportService(
         database_manager=database_manager,
         parser=HealthDataParser(),
+        sleep_analysis_service=SleepAnalysisService(),
     )
 
     window = MainWindow(

@@ -10,7 +10,7 @@
 - Phase 1 completed: application shell, entrypoint, package layout, theme, placeholder pages.
 - Phase 2 completed: SQLite bootstrap, schema creation, indexes, database manager foundation.
 - Phase 3 completed: import pipeline, zip/XML resolution, Apple Health XML parsing, normalization, duplicate detection, persistence, and UI import wiring.
-- Phase 4 has not started yet.
+- Phase 4 is partially implemented: nightly sleep sessions are now derived and persisted after import, and overview cards now read real sleep, steps, and resting-HR metrics when data exists.
 
 ## What Works Now
 - App launches from `main.py`.
@@ -67,8 +67,8 @@
   - `sleep_sessions`
   - `daily_summaries`
   - `import_history`
-- `sleep_sessions` exists in schema but is not populated yet.
 - `daily_summaries` currently refreshes only for newly imported non-sleep records and uses the record `start_at` calendar date.
+- `sleep_sessions` is now populated by post-import derivation for impacted nights only.
 
 ## Import Pipeline Notes
 - Main orchestration lives in `ImportService`.
@@ -88,45 +88,38 @@
   - walking/running distance normalized to `km` for `m`, `mi`, and `ft`
 
 ## Known Gaps
-- No Phase 4 sleep session derivation yet.
-- `sleep_sessions` remains empty until `SleepAnalysisService` is implemented.
-- Overview still uses placeholder values for:
-  - average sleep this week
-  - last night sleep
-  - average daily steps
-  - latest resting heart rate
-- Sleep page is still scaffolded rather than analytics-driven.
+- Sleep-page UI is still scaffolded rather than analytics-driven.
+- Sleep-session derivation currently uses a rule-based heuristic:
+  - night grouping is anchored by `start_at - 12h`
+  - bedtime/wake and efficiency are computed from merged intervals
+  - consistency score is a first-pass heuristic, not a trend-based score yet
+- Sleep-session refresh currently re-reads all stored sleep records, then filters to impacted nights in Python.
 - Import UI shows summary dialogs only; there is no detailed import history page yet.
 - Parser warnings are stored in `import_history.notes`, but there is no UI to inspect them yet.
 - No automated tests added yet.
 - No sample fixture import file has been added to the repo.
 
 ## Next Recommended Phase
-- Phase 4: Sleep Analytics MVP
+- Phase 5: UI MVP
 - Main objective:
-  - turn normalized sleep records into nightly sessions and persisted summaries
+  - replace scaffolded Sleep page content with real analytics and charts
 - Expected work:
-  - implement `SleepAnalysisService`
-  - define night grouping logic for sessions crossing midnight
-  - derive:
-    - total sleep duration
-    - time in bed
-    - sleep efficiency
-    - bedtime
-    - wake time
-  - persist nightly summaries into `sleep_sessions`
-  - update dashboard reads to consume real sleep data
+  - query `sleep_sessions` for 7/30/90-day ranges
+  - render nightly duration, bedtime, wake-time, and weekly-average visuals
+  - add nightly sessions table
+  - refine the consistency model using trend data instead of a single-night heuristic
+  - add tests around night grouping and interval merging
 
 ## Suggested Resume Checklist
 1. Read `docs/spec-sheet.md` and `docs/implementation-plan.md`.
 2. Review:
+   - `app/services/sleep_analysis_service.py`
    - `app/services/import_service.py`
-   - `app/parser/health_data_parser.py`
    - `app/database/manager.py`
-3. Start Phase 4 in `app/services/sleep_analysis_service.py`.
-4. Add DB methods for inserting and querying `sleep_sessions`.
-5. Wire post-import sleep summary generation into the import flow.
-6. Refresh overview and sleep-page reads from derived data.
+   - `app/services/dashboard_controller.py`
+3. Build read models for the Sleep page from `sleep_sessions`.
+4. Add tests for impacted-night replacement and merged-interval calculations.
+5. Decide whether to keep the current consistency heuristic or replace it with a trend-based score.
 
 ## Verification Performed
 - Command run:
@@ -134,7 +127,7 @@
 python3 -m compileall app main.py
 ```
 - Result:
-  - passed after Phase 3 changes
+  - passed after the Phase 4 sleep-session and overview changes
 
 ## Run Instructions
 ```bash

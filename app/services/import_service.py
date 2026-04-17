@@ -9,6 +9,7 @@ import zipfile
 from app.database.manager import DatabaseManager
 from app.models.imports import FileInspectionResult, ImportResult, ResolvedImportSource
 from app.parser.health_data_parser import HealthDataParser
+from app.services.sleep_analysis_service import SleepAnalysisService
 
 
 class ImportService:
@@ -18,9 +19,11 @@ class ImportService:
         self,
         database_manager: DatabaseManager,
         parser: HealthDataParser,
+        sleep_analysis_service: SleepAnalysisService,
     ) -> None:
         self.database_manager = database_manager
         self.parser = parser
+        self.sleep_analysis_service = sleep_analysis_service
 
     def inspect_file(self, selected_path: str) -> FileInspectionResult:
         try:
@@ -68,7 +71,7 @@ class ImportService:
                 )
 
             records, warnings = self.parser.parse(resolved.export_xml_path)
-            self.database_manager.persist_import(
+            import_id = self.database_manager.persist_import(
                 file_path=str(resolved.selected_path),
                 file_name=resolved.selected_path.name,
                 file_size=resolved.file_size,
@@ -77,6 +80,7 @@ class ImportService:
                 records=records,
                 warnings=warnings,
             )
+            self._refresh_sleep_sessions(import_id=import_id, records=records)
             return ImportResult(
                 is_success=True,
                 status="completed",
@@ -176,3 +180,20 @@ class ImportService:
         if resolved is None or resolved.cleanup_dir is None:
             return
         shutil.rmtree(resolved.cleanup_dir, ignore_errors=True)
+
+    def _refresh_sleep_sessions(self, *, import_id: int, records: list[dict]) -> None:
+        impacted_night_dates = self.sleep_analysis_service.impacted_night_dates(records)
+        if not impacted_night_dates:
+            return
+
+        stored_sleep_records = [
+            record
+            for record in self.database_manager.list_sleep_records()
+            if self.sleep_analysis_service.night_date_for_record(record) in impacted_night_dates
+        ]
+        sessions = self.sleep_analysis_service.build_sleep_sessions(stored_sleep_records)
+        self.database_manager.replace_sleep_sessions(
+            import_id=import_id,
+            night_dates=impacted_night_dates,
+            sessions=sessions,
+        )

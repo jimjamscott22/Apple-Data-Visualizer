@@ -241,6 +241,75 @@ class DatabaseManager:
 
             return import_id
 
+    def list_sleep_records(self) -> list[dict]:
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT start_at, end_at, value, unit, metadata_json
+                FROM records
+                WHERE metric_name = 'sleep_analysis'
+                ORDER BY start_at ASC
+                """
+            ).fetchall()
+
+        return [
+            {
+                "metric_name": "sleep_analysis",
+                "start_at": row["start_at"],
+                "end_at": row["end_at"],
+                "value": row["value"],
+                "unit": row["unit"],
+                "metadata": json.loads(row["metadata_json"] or "{}"),
+            }
+            for row in rows
+        ]
+
+    def replace_sleep_sessions(
+        self,
+        *,
+        import_id: int,
+        night_dates: set[str],
+        sessions: list[dict],
+    ) -> None:
+        with self.connect() as connection:
+            if night_dates:
+                placeholders = ", ".join("?" for _ in night_dates)
+                connection.execute(
+                    f"DELETE FROM sleep_sessions WHERE night_date IN ({placeholders})",
+                    tuple(sorted(night_dates)),
+                )
+
+            if sessions:
+                connection.executemany(
+                    """
+                    INSERT INTO sleep_sessions (
+                        import_id,
+                        night_date,
+                        bedtime_at,
+                        wake_at,
+                        total_sleep_hours,
+                        time_in_bed_hours,
+                        sleep_efficiency,
+                        consistency_score,
+                        summary_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    [
+                        (
+                            import_id,
+                            session["night_date"],
+                            session.get("bedtime_at"),
+                            session.get("wake_at"),
+                            session.get("total_sleep_hours"),
+                            session.get("time_in_bed_hours"),
+                            session.get("sleep_efficiency"),
+                            session.get("consistency_score"),
+                            json.dumps(session.get("summary", {})),
+                        )
+                        for session in sessions
+                    ],
+                )
+
     def get_overview_snapshot(self) -> sqlite3.Row | None:
         with self.connect() as connection:
             return connection.execute(
@@ -260,6 +329,62 @@ class DatabaseManager:
                         ORDER BY imported_at DESC, id DESC
                         LIMIT 1
                     ) AS latest_imported_at
+                """
+            ).fetchone()
+
+    def get_average_sleep_this_week(self) -> float | None:
+        with self.connect() as connection:
+            row = connection.execute(
+                """
+                SELECT AVG(total_sleep_hours) AS average_sleep_hours
+                FROM (
+                    SELECT total_sleep_hours
+                    FROM sleep_sessions
+                    ORDER BY night_date DESC
+                    LIMIT 7
+                )
+                """
+            ).fetchone()
+        return None if row is None else row["average_sleep_hours"]
+
+    def get_last_sleep_session(self) -> sqlite3.Row | None:
+        with self.connect() as connection:
+            return connection.execute(
+                """
+                SELECT night_date, total_sleep_hours, bedtime_at, wake_at, sleep_efficiency
+                FROM sleep_sessions
+                ORDER BY night_date DESC
+                LIMIT 1
+                """
+            ).fetchone()
+
+    def get_average_daily_steps(self, days: int = 7) -> float | None:
+        with self.connect() as connection:
+            row = connection.execute(
+                """
+                SELECT AVG(total_value) AS average_steps
+                FROM (
+                    SELECT total_value
+                    FROM daily_summaries
+                    WHERE metric_name = 'step_count'
+                    ORDER BY summary_date DESC
+                    LIMIT ?
+                )
+                """,
+                (days,),
+            ).fetchone()
+        return None if row is None else row["average_steps"]
+
+    def get_latest_resting_heart_rate(self) -> sqlite3.Row | None:
+        with self.connect() as connection:
+            return connection.execute(
+                """
+                SELECT start_at, value, unit
+                FROM records
+                WHERE metric_name = 'resting_heart_rate'
+                  AND value IS NOT NULL
+                ORDER BY start_at DESC
+                LIMIT 1
                 """
             ).fetchone()
 
