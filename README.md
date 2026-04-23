@@ -71,6 +71,29 @@ python3 -m pip install -r requirements.txt
 python3 main.py
 ```
 
+## Import Apple Health Data
+
+### Export from the Health app on iPhone
+
+1. Open the `Health` app on your iPhone.
+2. Tap `Summary`.
+3. Tap your profile picture or initials in the top-right corner.
+4. Tap `Export All Health Data`.
+5. Choose a sharing method and save/send the export to your computer.
+
+Apple exports your data as a zip archive. This app can import that zip directly, so you do not need to extract it first unless you want to work with the raw `export.xml` file yourself.
+
+### Import into Apple Data Visualizer
+
+1. Launch the app.
+2. Click `Import Apple Health Export`.
+3. Select either:
+   - the Apple Health export `.zip` file
+   - the extracted `export.xml` file
+4. Wait for the import confirmation dialog.
+
+The app stores imported data in its local SQLite database, skips duplicate imports automatically, and will show a warning count if some Apple Health record types were not imported.
+
 ## Planning Docs
 
 The repo's implementation source of truth now lives in:

@@ -33,6 +33,19 @@ SLEEP_STAGE_MAP = {
 class HealthDataParser:
     def parse(self, export_xml_path: Path) -> tuple[list[dict], list[str]]:
         records: list[dict] = []
+
+        def collect_record(record: dict) -> None:
+            records.append(record)
+
+        warnings = self.parse_stream(export_xml_path, on_record=collect_record)
+        return records, warnings
+
+    def parse_stream(
+        self,
+        export_xml_path: Path,
+        *,
+        on_record,
+    ) -> list[str]:
         warnings: list[str] = []
         unsupported_types: Counter[str] = Counter()
         malformed_count = 0
@@ -50,6 +63,7 @@ class HealthDataParser:
                 seen_root = True
 
             if tag_name != "Record":
+                element.clear()
                 continue
 
             source_type = element.attrib.get("type", "")
@@ -68,7 +82,7 @@ class HealthDataParser:
                 element.clear()
                 continue
 
-            records.append(normalized_record)
+            on_record(normalized_record)
             element.clear()
 
         if not seen_root:
@@ -88,7 +102,7 @@ class HealthDataParser:
         if malformed_count:
             warnings.append(f"Skipped {malformed_count} malformed supported records during parsing.")
 
-        return records, warnings
+        return warnings
 
     def _parse_record(self, metric_name: str, source_type: str, attributes: dict[str, str]) -> dict:
         start_at = self._parse_datetime(attributes.get("startDate"), "startDate", source_type)

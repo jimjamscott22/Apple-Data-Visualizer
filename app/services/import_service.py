@@ -13,6 +13,7 @@ from app.services.sleep_analysis_service import SleepAnalysisService
 
 
 class ImportService:
+    IMPORT_BATCH_SIZE = 5000
     SUPPORTED_EXTENSIONS = {".xml", ".zip"}
 
     def __init__(
@@ -70,24 +71,61 @@ class ImportService:
                     duplicate_detected=True,
                 )
 
-            records, warnings = self.parser.parse(resolved.export_xml_path)
-            import_id = self.database_manager.persist_import(
-                file_path=str(resolved.selected_path),
-                file_name=resolved.selected_path.name,
-                file_size=resolved.file_size,
-                file_fingerprint=fingerprint,
-                source_type=resolved.source_type,
-                records=records,
-                warnings=warnings,
-            )
-            self._refresh_sleep_sessions(import_id=import_id, records=records)
+            record_count = 0
+            batch: list[dict] = []
+            impacted_night_dates: set[str] = set()
+
+            with self.database_manager.connect() as connection:
+                import_id = self.database_manager.begin_import(
+                    connection,
+                    file_path=str(resolved.selected_path),
+                    file_name=resolved.selected_path.name,
+                    file_size=resolved.file_size,
+                    file_fingerprint=fingerprint,
+                    source_type=resolved.source_type,
+                )
+
+                def flush_batch() -> None:
+                    nonlocal record_count
+                    if not batch:
+                        return
+                    self.database_manager.append_import_records(
+                        connection,
+                        import_id=import_id,
+                        records=batch,
+                    )
+                    record_count += len(batch)
+                    impacted_night_dates.update(
+                        self.sleep_analysis_service.impacted_night_dates(batch)
+                    )
+                    batch.clear()
+
+                def collect_record(record: dict) -> None:
+                    batch.append(record)
+                    if len(batch) >= self.IMPORT_BATCH_SIZE:
+                        flush_batch()
+
+                warnings = self.parser.parse_stream(
+                    resolved.export_xml_path,
+                    on_record=collect_record,
+                )
+                flush_batch()
+                self.database_manager.complete_import(
+                    connection,
+                    import_id=import_id,
+                    record_count=record_count,
+                    warnings=warnings,
+                    source_type=resolved.source_type,
+                )
+
+            self._refresh_sleep_sessions(import_id=import_id, impacted_night_dates=impacted_night_dates)
             return ImportResult(
                 is_success=True,
                 status="completed",
                 message=(
-                    f"Imported {len(records)} supported records from {resolved.selected_path.name}."
+                    f"Imported {record_count} supported records from {resolved.selected_path.name}."
                 ),
-                record_count=len(records),
+                record_count=record_count,
                 warning_count=len(warnings),
             )
         except ValueError as exc:
@@ -181,8 +219,7 @@ class ImportService:
             return
         shutil.rmtree(resolved.cleanup_dir, ignore_errors=True)
 
-    def _refresh_sleep_sessions(self, *, import_id: int, records: list[dict]) -> None:
-        impacted_night_dates = self.sleep_analysis_service.impacted_night_dates(records)
+    def _refresh_sleep_sessions(self, *, import_id: int, impacted_night_dates: set[str]) -> None:
         if not impacted_night_dates:
             return
 

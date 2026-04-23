@@ -91,6 +91,7 @@ class DatabaseManager:
     def connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA foreign_keys = ON")
         return connection
 
     def find_completed_import_by_fingerprint(self, fingerprint: str) -> sqlite3.Row | None:
@@ -240,6 +241,109 @@ class DatabaseManager:
                 self._refresh_daily_summaries(connection, records)
 
             return import_id
+
+    def begin_import(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        file_path: str,
+        file_name: str,
+        file_size: int,
+        file_fingerprint: str,
+        source_type: str,
+    ) -> int:
+        cursor = connection.execute(
+            """
+            INSERT INTO import_history (
+                file_path,
+                file_name,
+                file_size,
+                file_fingerprint,
+                import_status,
+                notes
+            ) VALUES (?, ?, ?, ?, 'in_progress', ?)
+            """,
+            (
+                file_path,
+                file_name,
+                file_size,
+                file_fingerprint,
+                json.dumps({"source_type": source_type, "warnings": []}),
+            ),
+        )
+        return int(cursor.lastrowid)
+
+    def append_import_records(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        import_id: int,
+        records: list[dict],
+    ) -> None:
+        if not records:
+            return
+
+        connection.executemany(
+            """
+            INSERT INTO records (
+                import_id,
+                metric_name,
+                source_type,
+                source_name,
+                start_at,
+                end_at,
+                value,
+                unit,
+                metadata_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                (
+                    import_id,
+                    record["metric_name"],
+                    record["source_type"],
+                    record.get("source_name"),
+                    record["start_at"],
+                    record["end_at"],
+                    record.get("value"),
+                    record.get("unit"),
+                    json.dumps(record.get("metadata", {})),
+                )
+                for record in records
+            ],
+        )
+        self._refresh_daily_summaries(connection, records)
+
+    def complete_import(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        import_id: int,
+        record_count: int,
+        warnings: list[str],
+        source_type: str,
+    ) -> None:
+        connection.execute(
+            """
+            UPDATE import_history
+            SET import_status = 'completed',
+                record_count = ?,
+                warning_count = ?,
+                notes = ?
+            WHERE id = ?
+            """,
+            (
+                record_count,
+                len(warnings),
+                json.dumps(
+                    {
+                        "source_type": source_type,
+                        "warnings": warnings,
+                    }
+                ),
+                import_id,
+            ),
+        )
 
     def list_sleep_records(self) -> list[dict]:
         with self.connect() as connection:
