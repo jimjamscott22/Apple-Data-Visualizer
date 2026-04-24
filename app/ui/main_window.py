@@ -20,6 +20,7 @@ from app.config import APP_NAME, AppPaths
 from app.services.dashboard_controller import DashboardController
 from app.services.import_service import ImportService
 from app.ui.pages.base import OverviewPage, PlaceholderPage, SleepPage
+from app.ui.pages.hrv_page import HRVPage
 
 
 class MainWindow(QMainWindow):
@@ -131,6 +132,7 @@ class MainWindow(QMainWindow):
         self.page_stack = QStackedWidget()
         self.overview_page = OverviewPage()
         self.sleep_page = SleepPage()
+        self.hrv_page = HRVPage()
         self.page_stack.addWidget(self.overview_page)
         self.page_stack.addWidget(
             PlaceholderPage(
@@ -139,12 +141,7 @@ class MainWindow(QMainWindow):
             )
         )
         self.page_stack.insertWidget(1, self.sleep_page)
-        self.page_stack.addWidget(
-            PlaceholderPage(
-                "Heart page scaffold",
-                "Reserved for heart-rate, resting heart-rate, HRV, and respiratory visuals.",
-            )
-        )
+        self.page_stack.addWidget(self.hrv_page)
         self.page_stack.addWidget(
             PlaceholderPage(
                 "Trends page scaffold",
@@ -170,6 +167,7 @@ class MainWindow(QMainWindow):
 
     def refresh_pages(self) -> None:
         self.overview_page.render(self.dashboard_controller.load_overview())
+        self.hrv_page.render(self.dashboard_controller.load_hrv_summary())
 
     def _handle_navigation_changed(self, index: int) -> None:
         self.page_stack.setCurrentIndex(index)
@@ -178,7 +176,7 @@ class MainWindow(QMainWindow):
             "Overview": "Fast context and import status, backed by the local SQLite foundation.",
             "Sleep": "Reserved for the signature nightly sleep analysis experience.",
             "Activity": "Reserved for steps and movement summaries.",
-            "Heart": "Reserved for heart metrics and resting-rate trends.",
+            "Heart": "Heart Rate Variability (HRV) analysis — latest SDNN, 7- and 30-day averages, trend direction, and daily history.",
             "Trends": "Reserved for broader rule-based health insights.",
             "Imports": "Reserved for import history and duplicate-detection visibility.",
             "Settings": "Reserved for local configuration and future customization.",

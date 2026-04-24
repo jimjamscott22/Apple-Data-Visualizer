@@ -492,6 +492,33 @@ class DatabaseManager:
                 """
             ).fetchone()
 
+    def get_hrv_records(self, days: int = 90) -> list[sqlite3.Row]:
+        with self.connect() as connection:
+            return connection.execute(
+                """
+                SELECT start_at, value, unit
+                FROM records
+                WHERE metric_name = 'heart_rate_variability'
+                  AND value IS NOT NULL
+                  AND start_at >= datetime('now', '-' || ? || ' days')
+                ORDER BY start_at ASC
+                """,
+                (days,),
+            ).fetchall()
+
+    def get_hrv_daily_summaries(self, days: int = 90) -> list[sqlite3.Row]:
+        with self.connect() as connection:
+            return connection.execute(
+                """
+                SELECT summary_date, average_value, minimum_value, maximum_value, sample_count
+                FROM daily_summaries
+                WHERE metric_name = 'heart_rate_variability'
+                  AND summary_date >= date('now', '-' || ? || ' days')
+                ORDER BY summary_date ASC
+                """,
+                (days,),
+            ).fetchall()
+
     def list_recent_imports(self, limit: int = 10) -> list[sqlite3.Row]:
         with self.connect() as connection:
             return connection.execute(
