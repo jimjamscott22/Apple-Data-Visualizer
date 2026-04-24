@@ -27,6 +27,8 @@ class HRVAnalysisService:
             HRVDailyRecord(
                 date=row["summary_date"],
                 average_ms=row["average_value"],
+                # minimum_value / maximum_value may be NULL when a day has only one sample;
+                # fall back to average_value so callers always receive a usable range.
                 min_ms=row["minimum_value"] if row["minimum_value"] is not None else row["average_value"],
                 max_ms=row["maximum_value"] if row["maximum_value"] is not None else row["average_value"],
                 sample_count=row["sample_count"],
@@ -101,6 +103,11 @@ class HRVAnalysisService:
         )
 
     def _linear_slope(self, x_vals: list[float], y_vals: list[float]) -> float:
+        """Return the slope of the ordinary least-squares regression line in y-units per x-unit.
+
+        When x_vals represents days (0, 1, 2, …) and y_vals represents HRV in ms, the returned
+        value is the estimated change in ms per day.
+        """
         n = len(x_vals)
         if n < 2:
             return 0.0

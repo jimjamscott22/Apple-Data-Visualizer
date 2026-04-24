@@ -41,7 +41,7 @@ class HRVPage(QWidget):
         chart_header = QHBoxLayout()
         chart_title = QLabel("HRV Trend — last 30 days")
         chart_title.setObjectName("SectionTitle")
-        chart_legend = QLabel("● Daily avg  ● 7-day rolling avg")
+        chart_legend = QLabel("● Daily avg   |   ● 7-day rolling avg")
         chart_legend.setObjectName("BodyMuted")
         chart_legend.setStyleSheet("color: #8da2c3; font-size: 12px;")
         chart_header.addWidget(chart_title, 1)
