@@ -4,11 +4,14 @@ from datetime import datetime
 
 from app.database.manager import DatabaseManager
 from app.models.dashboard import ImportStatusSummary, MetricCardData, OverviewData
+from app.models.hrv import HRVSummaryData
+from app.services.hrv_analysis_service import HRVAnalysisService
 
 
 class DashboardController:
-    def __init__(self, database_manager: DatabaseManager) -> None:
+    def __init__(self, database_manager: DatabaseManager, hrv_analysis_service: HRVAnalysisService) -> None:
         self.database_manager = database_manager
+        self.hrv_analysis_service = hrv_analysis_service
 
     def load_overview(self) -> OverviewData:
         snapshot = self.database_manager.get_overview_snapshot()
@@ -19,6 +22,7 @@ class DashboardController:
                     MetricCardData("Last night sleep", "--", "Nightly sessions will appear here"),
                     MetricCardData("Avg daily steps", "--", "Step imports feed this card"),
                     MetricCardData("Latest resting HR", "--", "Resting heart rate will show here"),
+                    MetricCardData("Latest HRV (SDNN)", "--", "Heart rate variability will show here"),
                 ],
                 import_status=ImportStatusSummary(
                     title="No imports yet",
@@ -73,12 +77,22 @@ class DashboardController:
                         else "Resting heart rate will show here once imported."
                     ),
                 ),
+                MetricCardData(
+                    "Latest HRV (SDNN)",
+                    self._format_hrv(self.database_manager.get_hrv_records(days=1)),
+                    "Most recent heart rate variability sample. See Heart page for full analysis.",
+                ),
             ],
             import_status=ImportStatusSummary(
                 title=f"Latest import: {latest_status}",
                 detail=f"Most recent import recorded at {latest_imported_at}.",
             ),
         )
+
+    def load_hrv_summary(self) -> HRVSummaryData:
+        daily_rows = self.database_manager.get_hrv_daily_summaries(days=90)
+        raw_rows = self.database_manager.get_hrv_records(days=90)
+        return self.hrv_analysis_service.compute_summary(daily_rows, raw_rows)
 
     def _format_hours(self, value: float | None) -> str:
         if value is None:
@@ -102,6 +116,16 @@ class DashboardController:
             return "Resting heart rate will show here once imported."
         recorded_at = datetime.fromisoformat(row["start_at"]).strftime("%Y-%m-%d %H:%M")
         return f"Latest resting-heart-rate sample recorded {recorded_at}."
+
+    def _format_hrv(self, rows: list) -> str:
+        if not rows:
+            return "--"
+        latest = rows[-1]
+        value = latest["value"]
+        if value is None:
+            return "--"
+        unit = latest["unit"] or "ms"
+        return f"{value:.0f} {unit}"
 
     def _format_last_sleep_detail(self, row) -> str:
         if row is None:
