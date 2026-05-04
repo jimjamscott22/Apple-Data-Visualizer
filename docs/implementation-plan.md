@@ -152,6 +152,24 @@ Replace placeholders with usable, polished dashboard experiences backed by real 
 **Purpose**
 Broaden the app beyond the MVP centerpieces without destabilizing the core experience.
 
+### First Expansion Slice: Heart / Recovery
+Because the HRV graph is already in place, the first Phase 6 priority should be a focused Heart / Recovery page that adds interpretation around HRV before broadening into every available metric.
+
+**Deliverables**
+- Add HRV 7-day and 30-day rolling averages.
+- Add latest HRV, average HRV, min, max, and baseline delta summary values.
+- Add resting heart rate trend and baseline comparison.
+- Add a recovery summary card with rule-based states such as `Recovered`, `Normal`, `Strained`, and `Low data`.
+- Add sleep context beside the heart metrics, including last night's sleep duration and sleep efficiency when available.
+- Add a simple comparison of HRV after higher-sleep nights versus lower-sleep nights when the dataset has enough matching records.
+- Add metric-specific empty states when HRV, resting heart rate, or sleep context is unavailable.
+
+**Definition of Done**
+- HRV can be interpreted against a personal baseline, not only viewed as raw points.
+- Resting heart rate and sleep context render in the same workflow as HRV.
+- The recovery summary is deterministic, explainable in code, and avoids medical claims.
+- Missing optional metrics do not break the page or hide available HRV data.
+
 **Deliverables**
 - Activity page:
   - daily steps chart

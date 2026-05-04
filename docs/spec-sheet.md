@@ -274,6 +274,29 @@ Required MVP content:
 - consistency indicator
 - nightly table
 
+### Heart / Recovery Page Contract
+The next useful expansion after the HRV graph is context that helps the user interpret HRV instead of viewing it as an isolated line.
+
+Expected inputs:
+- HRV daily values and rolling baseline series
+- resting heart rate daily values and rolling baseline series
+- recent sleep duration and sleep efficiency summaries
+- latest import metadata for data freshness messaging
+
+Behavior:
+- show the existing HRV graph with 7-day and 30-day rolling averages
+- indicate whether recent HRV is above, near, or below the user's baseline
+- pair HRV with resting heart rate so recovery changes can be scanned quickly
+- surface sleep context for the same period, especially last night and recent averages
+- gracefully handle missing HRV, resting heart rate, or sleep data with metric-specific empty states
+
+Required initial content:
+- HRV baseline and trend chart
+- resting heart rate trend chart
+- recovery summary card using clear rule-based logic
+- comparison of HRV after higher-sleep nights versus lower-sleep nights when enough data exists
+- latest HRV, average HRV, latest resting heart rate, and baseline deltas
+
 ## Non-Functional Requirements
 - Maintainable, educational code with clean naming
 - Object-oriented structure without unnecessary abstraction
