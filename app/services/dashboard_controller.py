@@ -5,6 +5,7 @@ from datetime import datetime
 from app.database.manager import DatabaseManager
 from app.models.dashboard import ImportStatusSummary, MetricCardData, OverviewData
 from app.models.hrv import HRVSummaryData
+from app.models.sleep import SleepNightRecord, SleepSummaryData
 from app.services.hrv_analysis_service import HRVAnalysisService
 
 
@@ -88,6 +89,74 @@ class DashboardController:
                 detail=f"Most recent import recorded at {latest_imported_at}.",
             ),
         )
+
+    def load_sleep_summary(self, days: int = 30) -> SleepSummaryData:
+        rows = self.database_manager.get_recent_sleep_sessions(days=days)
+        nights = [
+            SleepNightRecord(
+                night_date=row["night_date"],
+                bedtime_at=row["bedtime_at"],
+                wake_at=row["wake_at"],
+                total_sleep_hours=row["total_sleep_hours"],
+                time_in_bed_hours=row["time_in_bed_hours"],
+                sleep_efficiency=row["sleep_efficiency"],
+                consistency_score=row["consistency_score"],
+            )
+            for row in rows
+            if row["total_sleep_hours"] is not None
+        ]
+        if not nights:
+            return SleepSummaryData(
+                range_days=days,
+                last_night=None,
+                avg_sleep_hours=None,
+                avg_efficiency=None,
+                avg_consistency=None,
+                avg_bedtime_hours=None,
+                avg_wake_hours=None,
+                nights=[],
+            )
+
+        last_night = nights[0]
+        avg_sleep = sum(n.total_sleep_hours for n in nights) / len(nights)
+
+        efficiencies = [n.sleep_efficiency for n in nights if n.sleep_efficiency is not None]
+        avg_efficiency = sum(efficiencies) / len(efficiencies) if efficiencies else None
+
+        consistencies = [n.consistency_score for n in nights if n.consistency_score is not None]
+        avg_consistency = sum(consistencies) / len(consistencies) if consistencies else None
+
+        bedtime_hours = [self._bedtime_clock_hours(n.bedtime_at) for n in nights]
+        bedtime_hours = [h for h in bedtime_hours if h is not None]
+        avg_bedtime = sum(bedtime_hours) / len(bedtime_hours) if bedtime_hours else None
+
+        wake_hours = [self._clock_hours(n.wake_at) for n in nights]
+        wake_hours = [h for h in wake_hours if h is not None]
+        avg_wake = sum(wake_hours) / len(wake_hours) if wake_hours else None
+
+        return SleepSummaryData(
+            range_days=days,
+            last_night=last_night,
+            avg_sleep_hours=avg_sleep,
+            avg_efficiency=avg_efficiency,
+            avg_consistency=avg_consistency,
+            avg_bedtime_hours=avg_bedtime,
+            avg_wake_hours=avg_wake,
+            nights=nights,
+        )
+
+    def _clock_hours(self, iso_value: str | None) -> float | None:
+        if not iso_value:
+            return None
+        dt = datetime.fromisoformat(iso_value)
+        return dt.hour + dt.minute / 60 + dt.second / 3600
+
+    def _bedtime_clock_hours(self, iso_value: str | None) -> float | None:
+        """Return bedtime in 'hours past noon' so 22:30 = 10.5 and 01:30 = 13.5."""
+        raw = self._clock_hours(iso_value)
+        if raw is None:
+            return None
+        return raw - 12 if raw >= 12 else raw + 12
 
     def load_hrv_summary(self) -> HRVSummaryData:
         daily_rows = self.database_manager.get_hrv_daily_summaries(days=90)

@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QAbstractItemView,
     QFrame,
     QHBoxLayout,
     QLabel,
-    QTableWidget,
-    QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
@@ -131,40 +127,3 @@ class OverviewPage(QWidget):
 
     def _replace_card_contents(self, card: EmptyStateCard, title: str, body: str) -> None:
         card.set_content(title, body)
-
-
-class SleepPage(QWidget):
-    def __init__(self, parent: QWidget | None = None) -> None:
-        super().__init__(parent)
-        self.setObjectName("PageRoot")
-
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(18)
-
-        summary = EmptyStateCard(
-            "Sleep analytics page",
-            "This page is reserved for nightly duration charts, bedtime and wake-time trends, "
-            "weekly rollups, and the session table defined in the spec.",
-        )
-        table = QTableWidget(5, 4)
-        table.setHorizontalHeaderLabels(["Night", "Sleep", "In Bed", "Efficiency"])
-        table.verticalHeader().setVisible(False)
-        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        table.setSelectionMode(QAbstractItemView.NoSelection)
-        table.setFocusPolicy(Qt.NoFocus)
-
-        placeholders = [
-            ("Recent night", "--", "--", "--"),
-            ("7-day avg", "--", "--", "--"),
-            ("30-day avg", "--", "--", "--"),
-            ("Bedtime trend", "Pending", "", ""),
-            ("Wake trend", "Pending", "", ""),
-        ]
-        for row_index, row in enumerate(placeholders):
-            for column_index, value in enumerate(row):
-                table.setItem(row_index, column_index, QTableWidgetItem(value))
-
-        layout.addWidget(summary)
-        layout.addWidget(table)
-        layout.addStretch()

@@ -462,6 +462,24 @@ class DatabaseManager:
                 """
             ).fetchone()
 
+    def get_recent_sleep_sessions(self, days: int) -> list[sqlite3.Row]:
+        with self.connect() as connection:
+            return connection.execute(
+                """
+                SELECT night_date,
+                       bedtime_at,
+                       wake_at,
+                       total_sleep_hours,
+                       time_in_bed_hours,
+                       sleep_efficiency,
+                       consistency_score
+                FROM sleep_sessions
+                ORDER BY night_date DESC
+                LIMIT ?
+                """,
+                (days,),
+            ).fetchall()
+
     def get_average_daily_steps(self, days: int = 7) -> float | None:
         with self.connect() as connection:
             row = connection.execute(

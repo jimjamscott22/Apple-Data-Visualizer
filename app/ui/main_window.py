@@ -19,8 +19,9 @@ from PySide6.QtWidgets import (
 from app.config import APP_NAME, AppPaths
 from app.services.dashboard_controller import DashboardController
 from app.services.import_service import ImportService
-from app.ui.pages.base import OverviewPage, PlaceholderPage, SleepPage
+from app.ui.pages.base import OverviewPage, PlaceholderPage
 from app.ui.pages.hrv_page import HRVPage
+from app.ui.pages.sleep_page import SleepPage
 
 
 class MainWindow(QMainWindow):
@@ -131,7 +132,7 @@ class MainWindow(QMainWindow):
 
         self.page_stack = QStackedWidget()
         self.overview_page = OverviewPage()
-        self.sleep_page = SleepPage()
+        self.sleep_page = SleepPage(on_range_changed=self._handle_sleep_range_changed)
         self.hrv_page = HRVPage()
         self.page_stack.addWidget(self.overview_page)
         self.page_stack.addWidget(
@@ -168,13 +169,19 @@ class MainWindow(QMainWindow):
     def refresh_pages(self) -> None:
         self.overview_page.render(self.dashboard_controller.load_overview())
         self.hrv_page.render(self.dashboard_controller.load_hrv_summary())
+        self.sleep_page.render(
+            self.dashboard_controller.load_sleep_summary(days=self.sleep_page.current_range())
+        )
+
+    def _handle_sleep_range_changed(self, days: int) -> None:
+        self.sleep_page.render(self.dashboard_controller.load_sleep_summary(days=days))
 
     def _handle_navigation_changed(self, index: int) -> None:
         self.page_stack.setCurrentIndex(index)
         page_names = ["Overview", "Sleep", "Activity", "Heart", "Trends", "Imports", "Settings"]
         descriptions = {
             "Overview": "Fast context and import status, backed by the local SQLite foundation.",
-            "Sleep": "Reserved for the signature nightly sleep analysis experience.",
+            "Sleep": "Nightly sleep analysis — duration, bedtime and wake trends, efficiency, consistency, and a full nightly sessions table.",
             "Activity": "Reserved for steps and movement summaries.",
             "Heart": "Heart Rate Variability (HRV) analysis — latest SDNN, 7- and 30-day averages, trend direction, and daily history.",
             "Trends": "Reserved for broader rule-based health insights.",
