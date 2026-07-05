@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.charts import style_axes
 from app.models.sleep import SleepSummaryData
 from app.ui.pages.base import EmptyStateCard, MetricCard
 
@@ -223,7 +224,7 @@ class SleepPage(QWidget):
             )
             self.duration_plot.addItem(avg_line)
 
-        _style_axes(self.duration_plot, left_label="Hours asleep", bottom_label="Night (oldest → newest)")
+        style_axes(self.duration_plot, left_label="Hours asleep", bottom_label="Night (oldest → newest)")
 
     def _render_timing_chart(self, summary: SleepSummaryData) -> None:
         self.timing_plot.clear()
@@ -245,7 +246,7 @@ class SleepPage(QWidget):
         self.timing_plot.plot(x, bedtime_y, pen=bedtime_pen, symbol="o", symbolSize=6, symbolBrush="#1e6bff")
         self.timing_plot.plot(x, wake_y, pen=wake_pen, symbol="o", symbolSize=6, symbolBrush="#ff6b35")
 
-        _style_axes(self.timing_plot, left_label="Clock hour", bottom_label="Night (oldest → newest)")
+        style_axes(self.timing_plot, left_label="Clock hour", bottom_label="Night (oldest → newest)")
 
     def _render_table(self, summary: SleepSummaryData) -> None:
         self.table.setRowCount(len(summary.nights))
@@ -318,17 +319,3 @@ def _format_clock_time(iso_value: str | None) -> str:
     if not iso_value:
         return "--"
     return datetime.fromisoformat(iso_value).strftime("%H:%M")
-
-
-def _style_axes(plot: pg.PlotWidget, *, left_label: str, bottom_label: str) -> None:
-    axis_pen = pg.mkPen(color="#93a8c8")
-    text_pen = pg.mkPen(color="#93a8c8")
-    left_axis = plot.getAxis("left")
-    bottom_axis = plot.getAxis("bottom")
-    left_axis.setLabel(left_label, color="#93a8c8")
-    bottom_axis.setLabel(bottom_label, color="#93a8c8")
-    left_axis.setPen(axis_pen)
-    bottom_axis.setPen(axis_pen)
-    left_axis.setTextPen(text_pen)
-    bottom_axis.setTextPen(text_pen)
-    plot.showGrid(x=True, y=True, alpha=0.15)

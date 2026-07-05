@@ -9,6 +9,11 @@ dependencies = [
     "pyqtgraph>=0.13",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]
+
 [project.scripts]
 apple-data-visualizer = "app.main:main"
 

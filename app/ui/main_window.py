@@ -22,6 +22,7 @@ from app.services.import_service import ImportService
 from app.ui.pages.base import OverviewPage, PlaceholderPage
 from app.ui.pages.hrv_page import HRVPage
 from app.ui.pages.sleep_page import SleepPage
+from app.ui.pages.trends_page import TrendsPage
 
 
 class MainWindow(QMainWindow):
@@ -134,6 +135,7 @@ class MainWindow(QMainWindow):
         self.overview_page = OverviewPage()
         self.sleep_page = SleepPage(on_range_changed=self._handle_sleep_range_changed)
         self.hrv_page = HRVPage()
+        self.trends_page = TrendsPage(on_range_changed=self._handle_trends_range_changed)
         self.page_stack.addWidget(self.overview_page)
         self.page_stack.addWidget(
             PlaceholderPage(
@@ -143,12 +145,7 @@ class MainWindow(QMainWindow):
         )
         self.page_stack.insertWidget(1, self.sleep_page)
         self.page_stack.addWidget(self.hrv_page)
-        self.page_stack.addWidget(
-            PlaceholderPage(
-                "Trends page scaffold",
-                "Reserved for cross-metric comparisons and rule-based insights.",
-            )
-        )
+        self.page_stack.addWidget(self.trends_page)
         self.page_stack.addWidget(
             PlaceholderPage(
                 "Imports page scaffold",
@@ -172,9 +169,15 @@ class MainWindow(QMainWindow):
         self.sleep_page.render(
             self.dashboard_controller.load_sleep_summary(days=self.sleep_page.current_range())
         )
+        self.trends_page.render(
+            self.dashboard_controller.load_trends_summary(days=self.trends_page.current_range())
+        )
 
     def _handle_sleep_range_changed(self, days: int) -> None:
         self.sleep_page.render(self.dashboard_controller.load_sleep_summary(days=days))
+
+    def _handle_trends_range_changed(self, days: int) -> None:
+        self.trends_page.render(self.dashboard_controller.load_trends_summary(days=days))
 
     def _handle_navigation_changed(self, index: int) -> None:
         self.page_stack.setCurrentIndex(index)
@@ -184,7 +187,7 @@ class MainWindow(QMainWindow):
             "Sleep": "Nightly sleep analysis — duration, bedtime and wake trends, efficiency, consistency, and a full nightly sessions table.",
             "Activity": "Reserved for steps and movement summaries.",
             "Heart": "Heart Rate Variability (HRV) analysis — latest SDNN, 7- and 30-day averages, trend direction, and daily history.",
-            "Trends": "Reserved for broader rule-based health insights.",
+            "Trends": "Cross-metric relationships — sleep vs next-day HRV and resting HR, steps vs sleep, and weekday/weekend patterns.",
             "Imports": "Reserved for import history and duplicate-detection visibility.",
             "Settings": "Reserved for local configuration and future customization.",
         }
