@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QButtonGroup,
     QFrame,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
     QPushButton,
     QTableWidget,
@@ -18,9 +19,16 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from app.charts import SERIES_ACCENT, SERIES_PRIMARY, ClockAxisItem, style_axes
+from app.charts import (
+    SERIES_ACCENT,
+    SERIES_PRIMARY,
+    ClockAxisItem,
+    IndexDateAxisItem,
+    disable_chart_interaction,
+    style_axes,
+)
 from app.models.sleep import SleepSummaryData
-from app.ui.pages.base import EmptyStateCard, MetricCard
+from app.ui.pages.base import EmptyStateCard, MetricCard, right_aligned
 
 
 RANGE_OPTIONS = [7, 30, 90]
@@ -50,8 +58,16 @@ class SleepPage(QWidget):
         self.metrics_row.setSpacing(14)
         layout.addLayout(self.metrics_row)
 
-        self.duration_chart_frame = self._build_chart_frame("Nightly sleep duration")
+        self.duration_chart_frame = self._build_chart_frame(
+            "Nightly sleep duration",
+            legend=(
+                f'<span style="color:{SERIES_PRIMARY};">■</span> Nightly duration &nbsp;|&nbsp; '
+                f'<span style="color:{SERIES_ACCENT};">┅</span> Average'
+            ),
+            bottom_axis_item=IndexDateAxisItem(orientation="bottom"),
+        )
         self.duration_plot: pg.PlotWidget = self.duration_chart_frame.findChild(pg.PlotWidget)
+        disable_chart_interaction(self.duration_plot)
         layout.addWidget(self.duration_chart_frame)
 
         self.timing_chart_frame = self._build_chart_frame(
@@ -61,8 +77,10 @@ class SleepPage(QWidget):
                 f'<span style="color:{SERIES_ACCENT};">●</span> Wake time'
             ),
             left_axis_item=ClockAxisItem(orientation="left"),
+            bottom_axis_item=IndexDateAxisItem(orientation="bottom"),
         )
         self.timing_plot: pg.PlotWidget = self.timing_chart_frame.findChild(pg.PlotWidget)
+        disable_chart_interaction(self.timing_plot)
         layout.addWidget(self.timing_chart_frame)
 
         self.table_frame = QFrame()
@@ -83,7 +101,8 @@ class SleepPage(QWidget):
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.setSelectionMode(QAbstractItemView.NoSelection)
         self.table.setFocusPolicy(Qt.NoFocus)
-        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.setAlternatingRowColors(True)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.setMinimumHeight(240)
         table_layout.addWidget(self.table)
 
@@ -123,6 +142,7 @@ class SleepPage(QWidget):
         title: str,
         legend: str | None = None,
         left_axis_item: pg.AxisItem | None = None,
+        bottom_axis_item: pg.AxisItem | None = None,
     ) -> QFrame:
         frame = QFrame()
         frame.setObjectName("MetricCard")
@@ -141,10 +161,12 @@ class SleepPage(QWidget):
             header.addWidget(legend_label)
         layout.addLayout(header)
 
+        axis_items = {}
         if left_axis_item is not None:
-            plot = pg.PlotWidget(axisItems={"left": left_axis_item})
-        else:
-            plot = pg.PlotWidget()
+            axis_items["left"] = left_axis_item
+        if bottom_axis_item is not None:
+            axis_items["bottom"] = bottom_axis_item
+        plot = pg.PlotWidget(axisItems=axis_items) if axis_items else pg.PlotWidget()
         plot.setBackground("#0f1b31")
         plot.setMinimumHeight(220)
         layout.addWidget(plot)
@@ -198,7 +220,7 @@ class SleepPage(QWidget):
         eff_detail = "Asleep time ÷ time in bed"
 
         cons_value = (
-            f"{summary.avg_consistency:.0f}" if summary.avg_consistency is not None else "--"
+            f"{summary.avg_consistency:.0f} / 100" if summary.avg_consistency is not None else "--"
         )
         cons_detail = "Higher = more regular schedule"
 
@@ -226,18 +248,19 @@ class SleepPage(QWidget):
         x = list(range(len(nights)))
         y = [n.total_sleep_hours for n in nights]
 
-        bar = pg.BarGraphItem(x=x, height=y, width=0.7, brush="#1e6bff", pen=pg.mkPen(None))
+        bar = pg.BarGraphItem(x=x, height=y, width=0.7, brush=SERIES_PRIMARY, pen=pg.mkPen(None))
         self.duration_plot.addItem(bar)
 
         if summary.avg_sleep_hours is not None:
             avg_line = pg.InfiniteLine(
                 pos=summary.avg_sleep_hours,
                 angle=0,
-                pen=pg.mkPen("#ff6b35", width=2, style=Qt.DashLine),
+                pen=pg.mkPen(SERIES_ACCENT, width=2, style=Qt.DashLine),
             )
             self.duration_plot.addItem(avg_line)
 
-        style_axes(self.duration_plot, left_label="Hours asleep", bottom_label="Night (oldest → newest)")
+        self.duration_plot.getAxis("bottom").set_dates([n.night_date for n in nights])
+        style_axes(self.duration_plot, left_label="Hours asleep", bottom_label="Night")
 
     def _render_timing_chart(self, summary: SleepSummaryData) -> None:
         self.timing_plot.clear()
@@ -254,12 +277,13 @@ class SleepPage(QWidget):
             bedtime_y.append(b if b is not None else float("nan"))
             wake_y.append(w if w is not None else float("nan"))
 
-        bedtime_pen = pg.mkPen(color="#1e6bff", width=2)
-        wake_pen = pg.mkPen(color="#ff6b35", width=2)
-        self.timing_plot.plot(x, bedtime_y, pen=bedtime_pen, symbol="o", symbolSize=6, symbolBrush="#1e6bff")
-        self.timing_plot.plot(x, wake_y, pen=wake_pen, symbol="o", symbolSize=6, symbolBrush="#ff6b35")
+        bedtime_pen = pg.mkPen(color=SERIES_PRIMARY, width=2)
+        wake_pen = pg.mkPen(color=SERIES_ACCENT, width=2)
+        self.timing_plot.plot(x, bedtime_y, pen=bedtime_pen, symbol="o", symbolSize=6, symbolBrush=SERIES_PRIMARY)
+        self.timing_plot.plot(x, wake_y, pen=wake_pen, symbol="o", symbolSize=6, symbolBrush=SERIES_ACCENT)
 
-        style_axes(self.timing_plot, left_label="Time of day", bottom_label="Night (oldest → newest)")
+        self.timing_plot.getAxis("bottom").set_dates([n.night_date for n in nights])
+        style_axes(self.timing_plot, left_label="Time of day", bottom_label="Night")
 
     def _render_table(self, summary: SleepSummaryData) -> None:
         self.table.setRowCount(len(summary.nights))
@@ -285,10 +309,10 @@ class SleepPage(QWidget):
             self.table.setItem(row_idx, 0, QTableWidgetItem(night.night_date))
             self.table.setItem(row_idx, 1, QTableWidgetItem(bedtime))
             self.table.setItem(row_idx, 2, QTableWidgetItem(wake))
-            self.table.setItem(row_idx, 3, QTableWidgetItem(_format_hours(night.total_sleep_hours)))
-            self.table.setItem(row_idx, 4, QTableWidgetItem(in_bed))
-            self.table.setItem(row_idx, 5, QTableWidgetItem(efficiency))
-            self.table.setItem(row_idx, 6, QTableWidgetItem(consistency))
+            self.table.setItem(row_idx, 3, right_aligned(_format_hours(night.total_sleep_hours)))
+            self.table.setItem(row_idx, 4, right_aligned(in_bed))
+            self.table.setItem(row_idx, 5, right_aligned(efficiency))
+            self.table.setItem(row_idx, 6, right_aligned(consistency))
 
 
 def _format_hours(value: float | None) -> str:

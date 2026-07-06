@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 import pyqtgraph as pg
+
+pg.setConfigOptions(antialias=True)
 
 CHART_BACKGROUND = "#0f1b31"
 AXIS_COLOR = "#93a8c8"
 SERIES_PRIMARY = "#1e6bff"
-SERIES_ACCENT = "#ff6b35"
+SERIES_ACCENT = "#f2600c"
 
 
 def style_axes(plot: pg.PlotWidget, *, left_label: str, bottom_label: str) -> None:
@@ -22,6 +26,13 @@ def style_axes(plot: pg.PlotWidget, *, left_label: str, bottom_label: str) -> No
     left_axis.setTextPen(text_pen)
     bottom_axis.setTextPen(text_pen)
     plot.showGrid(x=True, y=True, alpha=0.15)
+
+
+def disable_chart_interaction(plot: pg.PlotWidget) -> None:
+    """Stop wheel-zoom/drag-pan from flinging these read-only charts off-screen."""
+    plot.setMouseEnabled(x=False, y=False)
+    plot.setMenuEnabled(False)
+    plot.hideButtons()
 
 
 class ClockAxisItem(pg.AxisItem):
@@ -43,4 +54,37 @@ class ClockAxisItem(pg.AxisItem):
                 hours = (hours + 1) % 24
                 minutes = 0
             strings.append(f"{hours:02d}:{minutes:02d}")
+        return strings
+
+
+class IndexDateAxisItem(pg.AxisItem):
+    """Bottom axis that labels integer plot indices with their real calendar date.
+
+    Charts here plot one point per night/day at consecutive integer x
+    positions (0, 1, 2, ...). Rather than showing that raw index, this looks
+    up the ISO date string for the nearest integer and renders it as e.g.
+    "Jul 05". Call `set_dates()` before each render since the underlying
+    series changes with the selected range.
+    """
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._dates: list[str] = []
+
+    def set_dates(self, dates: list[str]) -> None:
+        self._dates = dates
+
+    def tickStrings(self, values, scale, spacing):
+        strings = []
+        for value in values:
+            index = round(value)
+            if abs(value - index) > 1e-6 or not (0 <= index < len(self._dates)):
+                strings.append("")
+                continue
+            try:
+                parsed = datetime.fromisoformat(self._dates[index])
+            except ValueError:
+                strings.append("")
+                continue
+            strings.append(f"{parsed.strftime('%b')} {parsed.day:02d}")
         return strings

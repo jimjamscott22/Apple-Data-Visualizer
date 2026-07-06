@@ -2,7 +2,7 @@ APP_STYLESHEET = """
 QWidget {
     background-color: #09111f;
     color: #eef4ff;
-    font-family: "Segoe UI";
+    font-family: "Segoe UI", "Inter", "Ubuntu", sans-serif;
     font-size: 14px;
 }
 
@@ -125,6 +125,8 @@ QListWidget::item {
 QListWidget::item:selected {
     background-color: #162845;
     color: #f3f7ff;
+    border-left: 3px solid #1e6bff;
+    padding: 12px 14px 12px 11px;
 }
 
 QListWidget::item:hover:!selected {
@@ -136,6 +138,8 @@ QTableWidget {
     border: 1px solid #1d2942;
     border-radius: 16px;
     gridline-color: #1d2942;
+    alternate-background-color: #14233c;
+    font-family: "SF Mono", "Consolas", "Menlo", monospace;
 }
 
 QHeaderView::section {

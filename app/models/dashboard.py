@@ -14,6 +14,7 @@ class MetricCardData:
 class ImportStatusSummary:
     title: str
     detail: str
+    latest_data_at: str | None = None
 
 
 @dataclass(frozen=True)

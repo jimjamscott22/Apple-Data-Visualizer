@@ -13,7 +13,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from app.charts import CHART_BACKGROUND, SERIES_ACCENT, SERIES_PRIMARY, style_axes
+from app.charts import (
+    CHART_BACKGROUND,
+    SERIES_ACCENT,
+    SERIES_PRIMARY,
+    disable_chart_interaction,
+    style_axes,
+)
 from app.models.trends import CorrelationResult, SplitComparison, TrendsSummaryData
 from app.ui.pages.base import EmptyStateCard, MetricCard
 
@@ -109,6 +115,7 @@ class TrendsPage(QWidget):
         plot = pg.PlotWidget()
         plot.setBackground(CHART_BACKGROUND)
         plot.setMinimumHeight(220)
+        disable_chart_interaction(plot)
         layout.addWidget(plot)
         return frame, plot, title_label, caption_label
 

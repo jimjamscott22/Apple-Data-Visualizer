@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
+from datetime import datetime
+
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
@@ -18,12 +21,15 @@ from PySide6.QtWidgets import (
 )
 
 from app.config import APP_NAME, AppPaths
+from app.models.dashboard import OverviewData
 from app.services.dashboard_controller import DashboardController
 from app.services.import_service import ImportService
 from app.ui.pages.base import OverviewPage, PlaceholderPage
 from app.ui.pages.hrv_page import HRVPage
 from app.ui.pages.sleep_page import SleepPage
 from app.ui.pages.trends_page import TrendsPage
+
+HEADER_BUTTON_WIDTH = 230
 
 
 class MainWindow(QMainWindow):
@@ -54,6 +60,7 @@ class MainWindow(QMainWindow):
         shell_layout.addWidget(sidebar)
         shell_layout.addWidget(content, 1)
 
+        self._handle_navigation_changed(0)
         self.refresh_pages()
 
     def _build_sidebar(self) -> QWidget:
@@ -103,17 +110,15 @@ class MainWindow(QMainWindow):
         header_copy = QVBoxLayout()
         header_copy.setSpacing(6)
 
-        page_eyebrow = QLabel("MVP foundation")
-        page_eyebrow.setObjectName("Eyebrow")
-        self.page_title = QLabel("Overview")
+        self.page_eyebrow = QLabel("")
+        self.page_eyebrow.setObjectName("Eyebrow")
+        self.page_title = QLabel("")
         self.page_title.setObjectName("DisplayTitle")
-        self.page_description = QLabel(
-            "The application shell, database bootstrap, and page boundaries are now implemented."
-        )
+        self.page_description = QLabel("")
         self.page_description.setObjectName("BodyMuted")
         self.page_description.setWordWrap(True)
 
-        header_copy.addWidget(page_eyebrow)
+        header_copy.addWidget(self.page_eyebrow)
         header_copy.addWidget(self.page_title)
         header_copy.addWidget(self.page_description)
 
@@ -121,9 +126,11 @@ class MainWindow(QMainWindow):
         actions.setAlignment(Qt.AlignTop)
 
         self.import_button = QPushButton("Import Apple Health Export")
+        self.import_button.setMinimumWidth(HEADER_BUTTON_WIDTH)
         self.import_button.clicked.connect(self._select_import_file)
         reveal_button = QPushButton("Open Data Folder")
         reveal_button.setObjectName("SecondaryButton")
+        reveal_button.setMinimumWidth(HEADER_BUTTON_WIDTH)
         reveal_button.clicked.connect(self._show_data_folder)
 
         actions.addWidget(self.import_button)
@@ -179,7 +186,9 @@ class MainWindow(QMainWindow):
         return scroll
 
     def refresh_pages(self) -> None:
-        self.overview_page.render(self.dashboard_controller.load_overview())
+        overview = self.dashboard_controller.load_overview()
+        self.overview_page.render(overview)
+        self.page_eyebrow.setText(self._format_data_freshness(overview))
         self.hrv_page.render(self.dashboard_controller.load_hrv_summary())
         self.sleep_page.render(
             self.dashboard_controller.load_sleep_summary(days=self.sleep_page.current_range())
@@ -187,6 +196,16 @@ class MainWindow(QMainWindow):
         self.trends_page.render(
             self.dashboard_controller.load_trends_summary(days=self.trends_page.current_range())
         )
+
+    def _format_data_freshness(self, overview: OverviewData) -> str:
+        raw = overview.import_status.latest_data_at
+        if not raw:
+            return "No data imported yet"
+        try:
+            parsed = datetime.fromisoformat(raw)
+        except ValueError:
+            return "No data imported yet"
+        return f"Data through {parsed.strftime('%b')} {parsed.day}"
 
     def _handle_sleep_range_changed(self, days: int) -> None:
         self.sleep_page.render(self.dashboard_controller.load_sleep_summary(days=days))
@@ -234,8 +253,5 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Import Failed", result.message)
 
     def _show_data_folder(self) -> None:
-        QMessageBox.information(
-            self,
-            "Local Data Folder",
-            f"Database path:\n{self.app_paths.database_path}",
-        )
+        folder = self.app_paths.database_path.parent
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(folder)))

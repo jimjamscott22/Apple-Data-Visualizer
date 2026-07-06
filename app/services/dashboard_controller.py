@@ -95,6 +95,7 @@ class DashboardController:
             import_status=ImportStatusSummary(
                 title=f"Latest import: {latest_status}",
                 detail=f"Most recent import recorded at {latest_imported_at}.",
+                latest_data_at=snapshot["latest_imported_at"],
             ),
         )
 
