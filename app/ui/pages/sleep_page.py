@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from app.charts import style_axes
+from app.charts import SERIES_ACCENT, SERIES_PRIMARY, ClockAxisItem, style_axes
 from app.models.sleep import SleepSummaryData
 from app.ui.pages.base import EmptyStateCard, MetricCard
 
@@ -56,7 +56,11 @@ class SleepPage(QWidget):
 
         self.timing_chart_frame = self._build_chart_frame(
             "Bedtime & wake-time trend",
-            legend="● Bedtime   |   ● Wake time",
+            legend=(
+                f'<span style="color:{SERIES_PRIMARY};">●</span> Bedtime &nbsp;|&nbsp; '
+                f'<span style="color:{SERIES_ACCENT};">●</span> Wake time'
+            ),
+            left_axis_item=ClockAxisItem(orientation="left"),
         )
         self.timing_plot: pg.PlotWidget = self.timing_chart_frame.findChild(pg.PlotWidget)
         layout.addWidget(self.timing_chart_frame)
@@ -80,6 +84,7 @@ class SleepPage(QWidget):
         self.table.setSelectionMode(QAbstractItemView.NoSelection)
         self.table.setFocusPolicy(Qt.NoFocus)
         self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.setMinimumHeight(240)
         table_layout.addWidget(self.table)
 
         layout.addWidget(self.table_frame)
@@ -113,7 +118,12 @@ class SleepPage(QWidget):
         bar_layout.addStretch()
         return bar
 
-    def _build_chart_frame(self, title: str, legend: str | None = None) -> QFrame:
+    def _build_chart_frame(
+        self,
+        title: str,
+        legend: str | None = None,
+        left_axis_item: pg.AxisItem | None = None,
+    ) -> QFrame:
         frame = QFrame()
         frame.setObjectName("MetricCard")
         layout = QVBoxLayout(frame)
@@ -131,7 +141,10 @@ class SleepPage(QWidget):
             header.addWidget(legend_label)
         layout.addLayout(header)
 
-        plot = pg.PlotWidget()
+        if left_axis_item is not None:
+            plot = pg.PlotWidget(axisItems={"left": left_axis_item})
+        else:
+            plot = pg.PlotWidget()
         plot.setBackground("#0f1b31")
         plot.setMinimumHeight(220)
         layout.addWidget(plot)
@@ -236,8 +249,8 @@ class SleepPage(QWidget):
         bedtime_y: list[float] = []
         wake_y: list[float] = []
         for night in nights:
-            b = _bedtime_clock_hours(night.bedtime_at)
-            w = _clock_hours(night.wake_at)
+            b = _hours_since_prior_noon(night.bedtime_at)
+            w = _hours_since_prior_noon(night.wake_at)
             bedtime_y.append(b if b is not None else float("nan"))
             wake_y.append(w if w is not None else float("nan"))
 
@@ -246,7 +259,7 @@ class SleepPage(QWidget):
         self.timing_plot.plot(x, bedtime_y, pen=bedtime_pen, symbol="o", symbolSize=6, symbolBrush="#1e6bff")
         self.timing_plot.plot(x, wake_y, pen=wake_pen, symbol="o", symbolSize=6, symbolBrush="#ff6b35")
 
-        style_axes(self.timing_plot, left_label="Clock hour", bottom_label="Night (oldest → newest)")
+        style_axes(self.timing_plot, left_label="Time of day", bottom_label="Night (oldest → newest)")
 
     def _render_table(self, summary: SleepSummaryData) -> None:
         self.table.setRowCount(len(summary.nights))
@@ -293,7 +306,13 @@ def _clock_hours(iso_value: str | None) -> float | None:
     return dt.hour + dt.minute / 60 + dt.second / 3600
 
 
-def _bedtime_clock_hours(iso_value: str | None) -> float | None:
+def _hours_since_prior_noon(iso_value: str | None) -> float | None:
+    """Map a clock time to a continuous timeline anchored at the prior noon.
+
+    Evening hours count up from noon (22:00 -> 10) and hours past midnight
+    continue past 24 (06:21 -> 18.35), so bedtime and wake time land on one
+    monotonic axis instead of wrapping at midnight.
+    """
     raw = _clock_hours(iso_value)
     if raw is None:
         return None

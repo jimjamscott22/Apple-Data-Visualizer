@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.charts import SERIES_ACCENT, SERIES_PRIMARY
 from app.models.hrv import HRVSummaryData
 from app.ui.pages.base import EmptyStateCard, MetricCard
 
@@ -41,7 +42,10 @@ class HRVPage(QWidget):
         chart_header = QHBoxLayout()
         chart_title = QLabel("HRV Trend — last 30 days")
         chart_title.setObjectName("SectionTitle")
-        chart_legend = QLabel("● Daily avg   |   ● 7-day rolling avg")
+        chart_legend = QLabel(
+            f'<span style="color:{SERIES_PRIMARY};">●</span> Daily avg &nbsp;|&nbsp; '
+            f'<span style="color:{SERIES_ACCENT};">●</span> 7-day rolling avg'
+        )
         chart_legend.setObjectName("BodyMuted")
         chart_legend.setStyleSheet("color: #8da2c3; font-size: 12px;")
         chart_header.addWidget(chart_title, 1)
@@ -72,6 +76,7 @@ class HRVPage(QWidget):
         self.table.setSelectionMode(QAbstractItemView.NoSelection)
         self.table.setFocusPolicy(Qt.NoFocus)
         self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.setMinimumHeight(240)
         table_layout.addWidget(self.table)
 
         layout.addWidget(self.table_frame)

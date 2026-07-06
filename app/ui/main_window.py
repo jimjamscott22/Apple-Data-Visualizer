@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QPushButton,
+    QScrollArea,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
@@ -136,32 +137,46 @@ class MainWindow(QMainWindow):
         self.sleep_page = SleepPage(on_range_changed=self._handle_sleep_range_changed)
         self.hrv_page = HRVPage()
         self.trends_page = TrendsPage(on_range_changed=self._handle_trends_range_changed)
-        self.page_stack.addWidget(self.overview_page)
+        self.page_stack.addWidget(self._scrollable(self.overview_page))
         self.page_stack.addWidget(
-            PlaceholderPage(
-                "Activity page scaffold",
-                "Reserved for steps, movement trends, and active-day summaries.",
+            self._scrollable(
+                PlaceholderPage(
+                    "Activity page scaffold",
+                    "Reserved for steps, movement trends, and active-day summaries.",
+                )
             )
         )
-        self.page_stack.insertWidget(1, self.sleep_page)
-        self.page_stack.addWidget(self.hrv_page)
-        self.page_stack.addWidget(self.trends_page)
+        self.page_stack.insertWidget(1, self._scrollable(self.sleep_page))
+        self.page_stack.addWidget(self._scrollable(self.hrv_page))
+        self.page_stack.addWidget(self._scrollable(self.trends_page))
         self.page_stack.addWidget(
-            PlaceholderPage(
-                "Imports page scaffold",
-                "Reserved for import history, file metadata, and data-manager controls.",
+            self._scrollable(
+                PlaceholderPage(
+                    "Imports page scaffold",
+                    "Reserved for import history, file metadata, and data-manager controls.",
+                )
             )
         )
         self.page_stack.addWidget(
-            PlaceholderPage(
-                "Settings page scaffold",
-                "Reserved for database location, date-range defaults, and theme expansion.",
+            self._scrollable(
+                PlaceholderPage(
+                    "Settings page scaffold",
+                    "Reserved for database location, date-range defaults, and theme expansion.",
+                )
             )
         )
 
         layout.addWidget(header)
         layout.addWidget(self.page_stack, 1)
         return content
+
+    def _scrollable(self, widget: QWidget) -> QScrollArea:
+        scroll = QScrollArea()
+        scroll.setObjectName("PageScrollArea")
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setWidget(widget)
+        return scroll
 
     def refresh_pages(self) -> None:
         self.overview_page.render(self.dashboard_controller.load_overview())
