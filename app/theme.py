@@ -15,6 +15,10 @@ QWidget#Sidebar {
     border-right: 1px solid #1d2942;
 }
 
+QLabel {
+    background: transparent;
+}
+
 QWidget#HeaderCard, QFrame#MetricCard, QFrame#EmptyStateCard, QFrame#PlaceholderCard {
     background-color: #0f1b31;
     border: 1px solid #1d2942;
@@ -81,6 +85,27 @@ QPushButton#SecondaryButton {
 
 QPushButton#SecondaryButton:hover {
     background-color: #1b2d4c;
+}
+
+QPushButton#RangeButton {
+    background-color: transparent;
+    border: 1px solid #253556;
+    color: #a9bddb;
+    font-weight: 600;
+}
+
+QPushButton#RangeButton:hover {
+    background-color: #16233b;
+}
+
+QPushButton#RangeButton:checked {
+    background-color: #1e6bff;
+    border: 1px solid #1e6bff;
+    color: #ffffff;
+}
+
+QPushButton#RangeButton:checked:hover {
+    background-color: #3d82ff;
 }
 
 QListWidget {

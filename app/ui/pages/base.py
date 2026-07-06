@@ -15,6 +15,7 @@ class MetricCard(QFrame):
     def __init__(self, label: str, value: str, detail: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("MetricCard")
+        self.setMaximumHeight(150)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(18, 18, 18, 18)
