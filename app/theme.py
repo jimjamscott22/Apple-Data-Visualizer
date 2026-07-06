@@ -2,7 +2,7 @@ APP_STYLESHEET = """
 QWidget {
     background-color: #09111f;
     color: #eef4ff;
-    font-family: "Segoe UI";
+    font-family: "Segoe UI", "Inter", "Ubuntu", sans-serif;
     font-size: 14px;
 }
 
@@ -13,6 +13,10 @@ QMainWindow, QFrame#AppShell, QWidget#ContentSurface, QWidget#PageRoot {
 QWidget#Sidebar {
     background-color: #0d1729;
     border-right: 1px solid #1d2942;
+}
+
+QLabel {
+    background: transparent;
 }
 
 QWidget#HeaderCard, QFrame#MetricCard, QFrame#EmptyStateCard, QFrame#PlaceholderCard {
@@ -83,6 +87,27 @@ QPushButton#SecondaryButton:hover {
     background-color: #1b2d4c;
 }
 
+QPushButton#RangeButton {
+    background-color: transparent;
+    border: 1px solid #253556;
+    color: #a9bddb;
+    font-weight: 600;
+}
+
+QPushButton#RangeButton:hover {
+    background-color: #16233b;
+}
+
+QPushButton#RangeButton:checked {
+    background-color: #1e6bff;
+    border: 1px solid #1e6bff;
+    color: #ffffff;
+}
+
+QPushButton#RangeButton:checked:hover {
+    background-color: #3d82ff;
+}
+
 QListWidget {
     background: transparent;
     border: none;
@@ -100,6 +125,8 @@ QListWidget::item {
 QListWidget::item:selected {
     background-color: #162845;
     color: #f3f7ff;
+    border-left: 3px solid #1e6bff;
+    padding: 12px 14px 12px 11px;
 }
 
 QListWidget::item:hover:!selected {
@@ -111,6 +138,8 @@ QTableWidget {
     border: 1px solid #1d2942;
     border-radius: 16px;
     gridline-color: #1d2942;
+    alternate-background-color: #14233c;
+    font-family: "SF Mono", "Consolas", "Menlo", monospace;
 }
 
 QHeaderView::section {
@@ -120,5 +149,39 @@ QHeaderView::section {
     border-bottom: 1px solid #1d2942;
     padding: 10px;
     font-weight: 700;
+}
+
+QScrollArea#PageScrollArea {
+    border: none;
+    background: transparent;
+}
+
+QScrollArea#PageScrollArea > QWidget > QWidget {
+    background: transparent;
+}
+
+QScrollBar:vertical {
+    background: transparent;
+    width: 10px;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background: #253556;
+    border-radius: 5px;
+    min-height: 24px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #34497a;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0;
+    background: transparent;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: transparent;
 }
 """

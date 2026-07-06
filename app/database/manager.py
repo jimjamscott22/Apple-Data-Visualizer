@@ -524,6 +524,20 @@ class DatabaseManager:
                 (days,),
             ).fetchall()
 
+    def get_daily_metric_summaries(self, metric_name: str, days: int) -> list[sqlite3.Row]:
+        with self.connect() as connection:
+            return connection.execute(
+                """
+                SELECT summary_date, average_value, total_value, minimum_value,
+                       maximum_value, sample_count
+                FROM daily_summaries
+                WHERE metric_name = ?
+                  AND summary_date >= date('now', '-' || ? || ' days')
+                ORDER BY summary_date ASC
+                """,
+                (metric_name, days),
+            ).fetchall()
+
     def get_hrv_daily_summaries(self, days: int = 90) -> list[sqlite3.Row]:
         with self.connect() as connection:
             return connection.execute(

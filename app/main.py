@@ -11,6 +11,7 @@ from app.services.dashboard_controller import DashboardController
 from app.services.hrv_analysis_service import HRVAnalysisService
 from app.services.import_service import ImportService
 from app.services.sleep_analysis_service import SleepAnalysisService
+from app.services.trends_analysis_service import TrendsAnalysisService
 from app.theme import APP_STYLESHEET
 from app.ui.main_window import MainWindow
 
@@ -25,7 +26,10 @@ def main() -> int:
     database_manager.initialize()
 
     hrv_analysis_service = HRVAnalysisService()
-    dashboard_controller = DashboardController(database_manager, hrv_analysis_service)
+    trends_analysis_service = TrendsAnalysisService()
+    dashboard_controller = DashboardController(
+        database_manager, hrv_analysis_service, trends_analysis_service
+    )
     import_service = ImportService(
         database_manager=database_manager,
         parser=HealthDataParser(),

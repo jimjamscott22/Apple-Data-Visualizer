@@ -6,13 +6,21 @@ from app.database.manager import DatabaseManager
 from app.models.dashboard import ImportStatusSummary, MetricCardData, OverviewData
 from app.models.hrv import HRVSummaryData
 from app.models.sleep import SleepNightRecord, SleepSummaryData
+from app.models.trends import TrendsSummaryData
 from app.services.hrv_analysis_service import HRVAnalysisService
+from app.services.trends_analysis_service import TrendsAnalysisService
 
 
 class DashboardController:
-    def __init__(self, database_manager: DatabaseManager, hrv_analysis_service: HRVAnalysisService) -> None:
+    def __init__(
+        self,
+        database_manager: DatabaseManager,
+        hrv_analysis_service: HRVAnalysisService,
+        trends_analysis_service: TrendsAnalysisService,
+    ) -> None:
         self.database_manager = database_manager
         self.hrv_analysis_service = hrv_analysis_service
+        self.trends_analysis_service = trends_analysis_service
 
     def load_overview(self) -> OverviewData:
         snapshot = self.database_manager.get_overview_snapshot()
@@ -87,6 +95,7 @@ class DashboardController:
             import_status=ImportStatusSummary(
                 title=f"Latest import: {latest_status}",
                 detail=f"Most recent import recorded at {latest_imported_at}.",
+                latest_data_at=snapshot["latest_imported_at"],
             ),
         )
 
@@ -157,6 +166,14 @@ class DashboardController:
         if raw is None:
             return None
         return raw - 12 if raw >= 12 else raw + 12
+
+    def load_trends_summary(self, days: int = 90) -> TrendsSummaryData:
+        sleep_rows = self.database_manager.get_recent_sleep_sessions(days=days)
+        daily_rows_by_metric = {
+            metric_name: self.database_manager.get_daily_metric_summaries(metric_name, days=days)
+            for metric_name in ("heart_rate_variability", "resting_heart_rate", "step_count")
+        }
+        return self.trends_analysis_service.compute_summary(sleep_rows, daily_rows_by_metric, days)
 
     def load_hrv_summary(self) -> HRVSummaryData:
         daily_rows = self.database_manager.get_hrv_daily_summaries(days=90)

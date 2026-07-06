@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
     QFrame,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
     QTableWidget,
     QTableWidgetItem,
@@ -13,8 +14,15 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.charts import (
+    SERIES_ACCENT,
+    SERIES_PRIMARY,
+    IndexDateAxisItem,
+    disable_chart_interaction,
+    style_axes,
+)
 from app.models.hrv import HRVSummaryData
-from app.ui.pages.base import EmptyStateCard, MetricCard
+from app.ui.pages.base import EmptyStateCard, MetricCard, right_aligned
 
 
 class HRVPage(QWidget):
@@ -41,16 +49,20 @@ class HRVPage(QWidget):
         chart_header = QHBoxLayout()
         chart_title = QLabel("HRV Trend — last 30 days")
         chart_title.setObjectName("SectionTitle")
-        chart_legend = QLabel("● Daily avg   |   ● 7-day rolling avg")
+        chart_legend = QLabel(
+            f'<span style="color:{SERIES_PRIMARY};">●</span> Daily avg &nbsp;|&nbsp; '
+            f'<span style="color:{SERIES_ACCENT};">●</span> 7-day rolling avg'
+        )
         chart_legend.setObjectName("BodyMuted")
         chart_legend.setStyleSheet("color: #8da2c3; font-size: 12px;")
         chart_header.addWidget(chart_title, 1)
         chart_header.addWidget(chart_legend)
         chart_layout.addLayout(chart_header)
 
-        self.plot_widget = pg.PlotWidget()
+        self.plot_widget = pg.PlotWidget(axisItems={"bottom": IndexDateAxisItem(orientation="bottom")})
         self.plot_widget.setBackground("#0f1b31")
         self.plot_widget.setMinimumHeight(220)
+        disable_chart_interaction(self.plot_widget)
         chart_layout.addWidget(self.plot_widget)
 
         layout.addWidget(self.chart_frame)
@@ -71,7 +83,9 @@ class HRVPage(QWidget):
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.setSelectionMode(QAbstractItemView.NoSelection)
         self.table.setFocusPolicy(Qt.NoFocus)
-        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.setAlternatingRowColors(True)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.setMinimumHeight(240)
         table_layout.addWidget(self.table)
 
         layout.addWidget(self.table_frame)
@@ -157,14 +171,14 @@ class HRVPage(QWidget):
         x = list(range(len(records)))
         y = [r.average_ms for r in records]
 
-        pen_daily = pg.mkPen(color="#1e6bff", width=1.5)
+        pen_daily = pg.mkPen(color=SERIES_PRIMARY, width=1.5)
         self.plot_widget.plot(x, y, pen=pen_daily, connect="all")
 
         scatter = pg.ScatterPlotItem(
             x=x,
             y=y,
             pen=pg.mkPen(None),
-            brush=pg.mkBrush("#1e6bff"),
+            brush=pg.mkBrush(SERIES_PRIMARY),
             size=7,
         )
         self.plot_widget.addItem(scatter)
@@ -173,30 +187,21 @@ class HRVPage(QWidget):
         x_rolling = [i for i, v in enumerate(rolling) if v is not None]
         y_rolling = [v for v in rolling if v is not None]
         if len(x_rolling) >= 2:
-            pen_rolling = pg.mkPen(color="#ff6b35", width=2.5)
+            pen_rolling = pg.mkPen(color=SERIES_ACCENT, width=2.5)
             self.plot_widget.plot(x_rolling, y_rolling, pen=pen_rolling)
 
-        axis_pen = pg.mkPen(color="#93a8c8")
-        text_pen = pg.mkPen(color="#93a8c8")
-        left_axis = self.plot_widget.getAxis("left")
-        bottom_axis = self.plot_widget.getAxis("bottom")
-        left_axis.setLabel("HRV SDNN (ms)", color="#93a8c8")
-        bottom_axis.setLabel("Day (oldest → newest)", color="#93a8c8")
-        left_axis.setPen(axis_pen)
-        bottom_axis.setPen(axis_pen)
-        left_axis.setTextPen(text_pen)
-        bottom_axis.setTextPen(text_pen)
-        self.plot_widget.showGrid(x=True, y=True, alpha=0.15)
+        self.plot_widget.getAxis("bottom").set_dates([r.date for r in records])
+        style_axes(self.plot_widget, left_label="HRV SDNN (ms)", bottom_label="Day")
 
     def _render_table(self, summary: HRVSummaryData) -> None:
         records_desc = list(reversed(summary.daily_records))
         self.table.setRowCount(len(records_desc))
         for row_idx, record in enumerate(records_desc):
             self.table.setItem(row_idx, 0, QTableWidgetItem(record.date))
-            self.table.setItem(row_idx, 1, QTableWidgetItem(f"{record.average_ms:.1f}"))
-            self.table.setItem(row_idx, 2, QTableWidgetItem(f"{record.min_ms:.1f}"))
-            self.table.setItem(row_idx, 3, QTableWidgetItem(f"{record.max_ms:.1f}"))
-            self.table.setItem(row_idx, 4, QTableWidgetItem(str(record.sample_count)))
+            self.table.setItem(row_idx, 1, right_aligned(f"{record.average_ms:.1f}"))
+            self.table.setItem(row_idx, 2, right_aligned(f"{record.min_ms:.1f}"))
+            self.table.setItem(row_idx, 3, right_aligned(f"{record.max_ms:.1f}"))
+            self.table.setItem(row_idx, 4, right_aligned(str(record.sample_count)))
 
     def _rolling_average(self, values: list[float], window: int) -> list[float | None]:
         result: list[float | None] = []

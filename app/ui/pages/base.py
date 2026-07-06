@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
@@ -11,10 +13,18 @@ from PySide6.QtWidgets import (
 from app.models.dashboard import OverviewData
 
 
+def right_aligned(text: str) -> QTableWidgetItem:
+    """Table cell for a numeric value, right-aligned so digits line up."""
+    item = QTableWidgetItem(text)
+    item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+    return item
+
+
 class MetricCard(QFrame):
     def __init__(self, label: str, value: str, detail: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("MetricCard")
+        self.setMaximumHeight(150)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(18, 18, 18, 18)
@@ -100,13 +110,6 @@ class OverviewPage(QWidget):
 
         self.import_state_card = EmptyStateCard("", "")
         self.layout_root.addWidget(self.import_state_card)
-
-        self.empty_state = EmptyStateCard(
-            "Dashboard foundations are ready",
-            "Import flow, parser, and sleep analytics are the next implementation milestones. "
-            "This page already reads live state from the local database.",
-        )
-        self.layout_root.addWidget(self.empty_state)
         self.layout_root.addStretch()
 
     def render(self, overview: OverviewData) -> None:
