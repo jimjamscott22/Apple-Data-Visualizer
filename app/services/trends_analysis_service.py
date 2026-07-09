@@ -33,9 +33,9 @@ class TrendsAnalysisService:
         """Build the Trends page dataset.
 
         Args:
-            sleep_rows: sqlite3.Row list from sleep_sessions (night_date,
+            sleep_rows: dict list from sleep_sessions (night_date,
                 total_sleep_hours, ...), any order.
-            daily_rows_by_metric: metric_name -> sqlite3.Row list from
+            daily_rows_by_metric: metric_name -> dict list from
                 daily_summaries (summary_date, average_value, total_value, ...).
             days: selected range size, echoed back for the UI.
         """

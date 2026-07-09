@@ -1,6 +1,6 @@
 # Apple-Data-Visualizer
 
-A visually appealing desktop app that imports Apple Health export data, stores normalized health metrics in SQLite, and presents them in a modern analytics dashboard with a strong focus on sleep analysis.
+A visually appealing desktop app that imports Apple Health export data, stores normalized health metrics in a MariaDB database on your network, and presents them in a modern analytics dashboard with a strong focus on sleep analysis.
 
 ## Current Status
 
@@ -9,10 +9,62 @@ The repository now includes the first implementation pass for the documented arc
 - runnable `main.py` desktop entrypoint
 - `app/` package with UI, services, parser, database, models, charts, and utils modules
 - PySide6 application shell with sidebar navigation and scaffolded pages
-- first-run SQLite bootstrap with the initial MVP tables
+- first-run MariaDB schema bootstrap with the initial MVP tables (see "Database Setup (MariaDB)" below — a running MariaDB server and connection settings are required before the app will launch)
 - import-file inspection stub for `export.xml` and zip inputs
 
 Parser, import persistence, and sleep analytics are the next implementation steps.
+
+## Database Setup (MariaDB)
+
+The app stores data in a MariaDB database on your network — there is no
+local/file-based storage mode. See `docs/mariadb-migration-spec.md` and
+`docs/mariadb-migration-plan.md` for the full design and phased rollout that
+produced this.
+
+You'll need a MariaDB server already running on your network (10.5+). Create
+the application database, user, and privileges by running the following
+against it (for example via `mysql -h <server-host> -u root -p`):
+
+```sql
+CREATE DATABASE IF NOT EXISTS apple_health_data
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'apple_health_app'@'%' IDENTIFIED BY 'change-me-strong-password';
+
+GRANT ALL PRIVILEGES ON apple_health_data.* TO 'apple_health_app'@'%';
+
+FLUSH PRIVILEGES;
+```
+
+Notes:
+
+- Replace `change-me-strong-password` with a strong password of your own —
+  do not commit real credentials to this repo.
+- `'apple_health_app'@'%'` allows the app user to connect from any host on
+  the network. If you want to restrict this to your LAN subnet, replace `%`
+  with a host pattern such as `'192.168.1.%'`.
+
+Then tell the app how to reach that database. Copy `.env.example` to `.env`
+in the repo root and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+```
+APPLE_DV_DB_HOST=192.168.1.50
+APPLE_DV_DB_PORT=3306
+APPLE_DV_DB_NAME=apple_health_data
+APPLE_DV_DB_USER=apple_health_app
+APPLE_DV_DB_PASSWORD=change-me-strong-password
+```
+
+`.env` is gitignored. The app also reads these from real environment
+variables if you'd rather set them that way instead of using a `.env` file.
+On first launch the app connects to the configured server and creates its
+tables automatically. If the server is unreachable or the credentials are
+wrong, the app shows an error dialog instead of launching.
 
 ## Run
 
@@ -24,7 +76,9 @@ Parser, import persistence, and sleep analytics are the next implementation step
 uv sync
 ```
 
-2. Launch the app:
+2. Set up your `.env` file as described in "Database Setup (MariaDB)" above — the app will not launch without it.
+
+3. Launch the app:
 
 ```bash
 uv run apple-data-visualizer
@@ -92,7 +146,7 @@ Apple exports your data as a zip archive. This app can import that zip directly,
    - the extracted `export.xml` file
 4. Wait for the import confirmation dialog.
 
-The app stores imported data in its local SQLite database, skips duplicate imports automatically, and will show a warning count if some Apple Health record types were not imported.
+The app stores imported data in your configured MariaDB database, skips duplicate imports automatically, and will show a warning count if some Apple Health record types were not imported.
 
 ## Planning Docs
 
@@ -102,3 +156,8 @@ The repo's implementation source of truth now lives in:
 - `docs/implementation-plan.md`
 
 These docs translate the original design brief into an MVP-first product spec and phased execution roadmap for the project.
+
+The SQLite → MariaDB storage migration is tracked separately in:
+
+- `docs/mariadb-migration-spec.md`
+- `docs/mariadb-migration-plan.md`

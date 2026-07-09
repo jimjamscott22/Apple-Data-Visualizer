@@ -1,14 +1,14 @@
 # Apple Health Data Analyzer Spec Sheet
 
 ## Purpose
-Apple Health Data Analyzer is a desktop analytics app for Windows and Linux that imports Apple Health export data, normalizes it into a local SQLite database, and presents the data in a polished, insight-oriented dashboard. The product should feel approachable and modern rather than like an internal utility, with a particular emphasis on making sleep analysis genuinely useful.
+Apple Health Data Analyzer is a desktop analytics app for Windows and Linux that imports Apple Health export data, normalizes it into a MariaDB database on the user's network, and presents the data in a polished, insight-oriented dashboard. The product should feel approachable and modern rather than like an internal utility, with a particular emphasis on making sleep analysis genuinely useful.
 
 This spec turns the high-level design brief into the implementation contract for the repository. It defines the MVP, the initial architecture, the data boundaries, and the expected user experience so implementation can proceed without reopening foundational decisions.
 
 ## Product Goals
 - Let a user import either an Apple Health `export.xml` file or the export zip containing `export.xml`.
 - Parse supported Apple Health records into a normalized internal format that can be extended later.
-- Store both raw imported records and useful derived summaries in SQLite.
+- Store both raw imported records and useful derived summaries in MariaDB.
 - Present a polished desktop dashboard with strong sleep analytics, clear overview metrics, and room to grow into broader health insights.
 - Keep the codebase modular, readable, and educational so it remains easy to study and extend.
 
@@ -19,7 +19,7 @@ This spec turns the high-level design brief into the implementation contract for
 ## Supported Platforms and Stack
 - Language: Python 3
 - Desktop UI: PySide6
-- Storage: SQLite
+- Storage: MariaDB (networked server, no local/file-based mode)
 - Charting: PyQtGraph preferred for native integration and responsive desktop charts
 - Parsing: `xml.etree.ElementTree`
 - Packaging direction: layout and resource handling should remain PyInstaller-friendly
@@ -31,7 +31,7 @@ The MVP is the first build that should feel meaningfully usable. It does not nee
 - Import flow for `export.xml` and zip-based Apple Health exports
 - Import validation and friendly error reporting
 - XML parser foundation with extensible Apple record type mapping
-- SQLite schema creation on first run
+- MariaDB schema creation on first run
 - Import history and duplicate-import prevention
 - Overview dashboard page
 - Strong Sleep page with nightly analysis and filters
@@ -53,7 +53,7 @@ The MVP is the first build that should feel meaningfully usable. It does not nee
 4. App validates the selected file.
 5. If the file is a zip, the app extracts it to a temporary location and finds `export.xml`.
 6. Parser reads supported records and maps them into normalized internal models.
-7. Import service writes records, summaries, and metadata to SQLite while preventing duplicate imports.
+7. Import service writes records, summaries, and metadata to MariaDB while preventing duplicate imports.
 8. Dashboard refreshes to show updated overview metrics and sleep analytics.
 
 ## Functional Requirements
@@ -171,7 +171,7 @@ These are responsibility-level contracts, not final method signatures.
 - Return a result object suitable for UI status messages.
 
 ### `DatabaseManager`
-- Create and initialize the SQLite database.
+- Connect to the configured MariaDB database and initialize its schema.
 - Own connection setup and schema bootstrapping.
 - Provide the data-access layer for imports, records, summaries, and dashboard reads.
 - Keep SQL concerns outside of UI classes.
@@ -309,7 +309,7 @@ Required initial content:
 The MVP is successful when:
 - the app launches cleanly from `main.py`
 - a user can import a real Apple Health export file
-- the app stores normalized records and import metadata in SQLite
+- the app stores normalized records and import metadata in MariaDB
 - the overview page displays meaningful summary information
 - the sleep page feels polished and useful, not merely functional
 - missing optional metrics do not break imports or dashboard rendering

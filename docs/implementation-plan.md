@@ -52,7 +52,7 @@ Create the persistent storage foundation and establish the boundary between busi
 - Phase 1 application structure
 
 **Definition of Done**
-- Fresh launch creates the SQLite database automatically
+- Fresh launch creates the database schema automatically on the configured MariaDB server (originally SQLite; migrated per `docs/mariadb-migration-plan.md`)
 - Schema can be initialized repeatably without corruption
 - The app can read and write import and dashboard data through the database layer only
 

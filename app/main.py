@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import sys
 
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMessageBox
 
-from app.config import get_app_paths
+from app.database.config import MissingDatabaseSettingsError, get_database_settings
+from app.database.errors import DatabaseConnectionError
 from app.database.manager import DatabaseManager
 from app.parser.health_data_parser import HealthDataParser
 from app.services.dashboard_controller import DashboardController
@@ -21,9 +22,21 @@ def main() -> int:
     app.setApplicationName("Apple Health Data Analyzer")
     app.setStyleSheet(APP_STYLESHEET)
 
-    app_paths = get_app_paths()
-    database_manager = DatabaseManager(app_paths.database_path)
-    database_manager.initialize()
+    try:
+        database_settings = get_database_settings()
+        database_manager = DatabaseManager(database_settings)
+        database_manager.initialize()
+    except MissingDatabaseSettingsError as exc:
+        QMessageBox.critical(None, "Database Not Configured", str(exc))
+        return 1
+    except DatabaseConnectionError as exc:
+        QMessageBox.critical(
+            None,
+            "Cannot Connect to MariaDB",
+            f"{exc}\n\nCheck that the MariaDB server is running and reachable "
+            "on your network, and that your connection settings are correct.",
+        )
+        return 1
 
     hrv_analysis_service = HRVAnalysisService()
     trends_analysis_service = TrendsAnalysisService()
@@ -37,7 +50,7 @@ def main() -> int:
     )
 
     window = MainWindow(
-        app_paths=app_paths,
+        database_settings=database_settings,
         dashboard_controller=dashboard_controller,
         import_service=import_service,
     )

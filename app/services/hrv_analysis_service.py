@@ -20,8 +20,8 @@ class HRVAnalysisService:
         """Compute an HRV summary from daily_summaries rows and raw records rows.
 
         Args:
-            daily_rows: sqlite3.Row list from daily_summaries for heart_rate_variability.
-            raw_rows: sqlite3.Row list from records for heart_rate_variability.
+            daily_rows: dict list from daily_summaries for heart_rate_variability.
+            raw_rows: dict list from records for heart_rate_variability.
         """
         daily_records = [
             HRVDailyRecord(

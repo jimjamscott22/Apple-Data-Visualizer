@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from PySide6.QtCore import Qt, QUrl
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
@@ -20,7 +19,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from app.config import APP_NAME, AppPaths
+from app.config import APP_NAME
+from app.database.config import DatabaseSettings
 from app.models.dashboard import OverviewData
 from app.services.dashboard_controller import DashboardController
 from app.services.import_service import ImportService
@@ -35,12 +35,12 @@ HEADER_BUTTON_WIDTH = 230
 class MainWindow(QMainWindow):
     def __init__(
         self,
-        app_paths: AppPaths,
+        database_settings: DatabaseSettings,
         dashboard_controller: DashboardController,
         import_service: ImportService,
     ) -> None:
         super().__init__()
-        self.app_paths = app_paths
+        self.database_settings = database_settings
         self.dashboard_controller = dashboard_controller
         self.import_service = import_service
 
@@ -128,13 +128,13 @@ class MainWindow(QMainWindow):
         self.import_button = QPushButton("Import Apple Health Export")
         self.import_button.setMinimumWidth(HEADER_BUTTON_WIDTH)
         self.import_button.clicked.connect(self._select_import_file)
-        reveal_button = QPushButton("Open Data Folder")
-        reveal_button.setObjectName("SecondaryButton")
-        reveal_button.setMinimumWidth(HEADER_BUTTON_WIDTH)
-        reveal_button.clicked.connect(self._show_data_folder)
+        database_info_button = QPushButton("Database Info")
+        database_info_button.setObjectName("SecondaryButton")
+        database_info_button.setMinimumWidth(HEADER_BUTTON_WIDTH)
+        database_info_button.clicked.connect(self._show_database_info)
 
         actions.addWidget(self.import_button)
-        actions.addWidget(reveal_button)
+        actions.addWidget(database_info_button)
 
         header_layout.addLayout(header_copy, 1)
         header_layout.addLayout(actions)
@@ -217,7 +217,7 @@ class MainWindow(QMainWindow):
         self.page_stack.setCurrentIndex(index)
         page_names = ["Overview", "Sleep", "Activity", "Heart", "Trends", "Imports", "Settings"]
         descriptions = {
-            "Overview": "Fast context and import status, backed by the local SQLite foundation.",
+            "Overview": "Fast context and import status, backed by your MariaDB server.",
             "Sleep": "Nightly sleep analysis — duration, bedtime and wake trends, efficiency, consistency, and a full nightly sessions table.",
             "Activity": "Reserved for steps and movement summaries.",
             "Heart": "Heart Rate Variability (HRV) analysis — latest SDNN, 7- and 30-day averages, trend direction, and daily history.",
@@ -252,6 +252,13 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "Import Failed", result.message)
 
-    def _show_data_folder(self) -> None:
-        folder = self.app_paths.database_path.parent
-        QDesktopServices.openUrl(QUrl.fromLocalFile(str(folder)))
+    def _show_database_info(self) -> None:
+        settings = self.database_settings
+        QMessageBox.information(
+            self,
+            "Database Info",
+            "Connected to MariaDB:\n\n"
+            f"Host: {settings.host}:{settings.port}\n"
+            f"Database: {settings.database}\n"
+            f"User: {settings.user}",
+        )
