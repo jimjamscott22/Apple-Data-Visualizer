@@ -11,6 +11,10 @@
 - Added `.env.example` documenting the required variables (`.env` itself is already gitignored).
 - Added `tests/test_database_config.py` covering defaults, full env-var construction, and the missing-required-vars error.
 - Deliberately left `app/config.py` and `app/main.py` on the existing SQLite path — Phase 1 only introduces the new settings contract, it does not wire the app to it yet. That lands in Phase 3/4 of the plan.
+- Completed Phase 2: Schema Port. Added `app/database/schema.py` with `MARIADB_SCHEMA_STATEMENTS`, an ordered tuple of MariaDB DDL translating the existing SQLite schema per `docs/mariadb-migration-spec.md`'s translation table (`AUTO_INCREMENT`, `DATETIME`/`DATE` temporal columns, `JSON` for `metadata_json`/`summary_json`, `InnoDB`/`utf8mb4`). Kept `import_history.notes` as `TEXT` rather than `JSON` since `DatabaseManager.log_failed_import` writes a plain exception string into it while other call sites write `json.dumps(...)` — a native `JSON` column would reject the plain-string writes.
+- Verified the DDL directly against a real local MariaDB 10.11 server (installed in this session for testing only): applied cleanly, re-ran idempotently, and `SHOW CREATE TABLE` matched the intended shape including the FK constraints and the `daily_summaries` unique key.
+- Added `tests/test_database_schema.py`: static structural checks (all four tables created, FK-referenced tables created before their dependents, every statement is `IF NOT EXISTS`, the `notes`-stays-`TEXT` decision) that always run, plus a live-MariaDB round-trip test that creates/drops a throwaway database and is skipped automatically when no server is reachable (reads `APPLE_DV_TEST_DB_HOST/PORT/USER/PASSWORD`, defaulting to `127.0.0.1:3306`/`root`).
+- `app/database/manager.py` still targets SQLite; wiring `DatabaseManager` to this schema and PyMySQL is Phase 3.
 
 ### 2026-05-04
 - Rebased the Heart / Recovery planning updates onto the current remote app implementation.
