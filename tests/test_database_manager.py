@@ -245,7 +245,7 @@ class TestSleepSessionsAndDashboardReads:
         assert average_sleep == pytest.approx(7.5)
 
         last_session = db_manager.get_last_sleep_session()
-        assert last_session["night_date"].isoformat() == "2026-07-01"
+        assert last_session["night_date"] == "2026-07-01"
 
         latest_rhr = db_manager.get_latest_resting_heart_rate()
         assert latest_rhr["value"] == pytest.approx(52.0)
@@ -290,11 +290,76 @@ class TestSleepSessionsAndDashboardReads:
         )
 
         sessions = {
-            row["night_date"].isoformat(): row["total_sleep_hours"]
+            row["night_date"]: row["total_sleep_hours"]
             for row in db_manager.get_recent_sleep_sessions(days=10)
         }
         assert sessions["2026-07-01"] == pytest.approx(6.0)
         assert sessions["2026-07-02"] == pytest.approx(9.0)
+
+
+class TestParserTimestampFormatRoundTrip:
+    """HealthDataParser emits ISO 8601 timestamps with a `T` separator and a
+    UTC offset, e.g. `2026-07-01T08:00:00-07:00` (see
+    app/parser/health_data_parser.py DATE_FORMAT). MariaDB's DATETIME type
+    accepts neither, so DatabaseManager must normalize on write and every
+    read must still hand callers back a plain string (not a driver-native
+    datetime/date object), matching the contract every other layer of the
+    app (models, services, UI) already relies on.
+    """
+
+    def test_offset_timestamps_are_stored_and_read_back_as_plain_strings(self, db_manager):
+        db_manager.persist_import(
+            file_path="/tmp/export.xml",
+            file_name="export.xml",
+            file_size=1,
+            file_fingerprint="fingerprint-h",
+            source_type="xml",
+            records=[
+                _record(
+                    "resting_heart_rate",
+                    "2026-07-01T08:00:00-07:00",
+                    60.0,
+                    end_at="2026-07-01T08:00:00-07:00",
+                    unit="bpm",
+                )
+            ],
+            warnings=[],
+        )
+
+        latest_rhr = db_manager.get_latest_resting_heart_rate()
+        assert isinstance(latest_rhr["start_at"], str)
+        assert latest_rhr["start_at"] == "2026-07-01 08:00:00"
+
+    def test_offset_sleep_session_timestamps_round_trip(self, db_manager):
+        import_id = db_manager.persist_import(
+            file_path="/tmp/export.xml",
+            file_name="export.xml",
+            file_size=1,
+            file_fingerprint="fingerprint-i",
+            source_type="xml",
+            records=[],
+            warnings=[],
+        )
+
+        db_manager.replace_sleep_sessions(
+            import_id=import_id,
+            night_dates={"2026-07-01"},
+            sessions=[
+                {
+                    "night_date": "2026-07-01",
+                    "bedtime_at": "2026-06-30T23:00:00-07:00",
+                    "wake_at": "2026-07-01T06:30:00-07:00",
+                    "total_sleep_hours": 7.5,
+                    "summary": {},
+                }
+            ],
+        )
+
+        last_session = db_manager.get_last_sleep_session()
+        assert isinstance(last_session["bedtime_at"], str)
+        assert isinstance(last_session["wake_at"], str)
+        assert last_session["bedtime_at"] == "2026-06-30 23:00:00"
+        assert last_session["wake_at"] == "2026-07-01 06:30:00"
 
 
 class TestDailySummariesUpsert:

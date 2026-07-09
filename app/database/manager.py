@@ -1,14 +1,50 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 
 import pymysql
 import pymysql.cursors
 from pymysql.connections import Connection
+from pymysql.constants import FIELD_TYPE
+from pymysql.converters import conversions as _DEFAULT_CONVERSIONS
+from pymysql.converters import through as _passthrough
 
 from app.database.config import DatabaseSettings
 from app.database.errors import DatabaseConnectionError
 from app.database.schema import MARIADB_SCHEMA_STATEMENTS
+
+# The rest of the app (parser output, services, UI) treats start_at/end_at/
+# bedtime_at/wake_at/night_date/summary_date as plain strings, matching the
+# original SQLite TEXT columns. PyMySQL's default converters would turn
+# DATETIME/DATE columns into Python datetime/date objects on read, which
+# would break every one of those callers. Passing the raw MariaDB string
+# straight through on read keeps that contract unchanged while still
+# getting native DATETIME/DATE columns for storage and indexing.
+_STRING_TEMPORAL_CONVERSIONS = {
+    **_DEFAULT_CONVERSIONS,
+    FIELD_TYPE.DATETIME: _passthrough,
+    FIELD_TYPE.DATE: _passthrough,
+    FIELD_TYPE.TIMESTAMP: _passthrough,
+    FIELD_TYPE.NEWDATE: _passthrough,
+}
+
+
+def _to_mariadb_datetime(value: str | None) -> str | None:
+    """Normalize a parser-produced ISO 8601 timestamp for a DATETIME column.
+
+    The parser emits timestamps like `2026-07-01T08:00:00-07:00`. MariaDB's
+    DATETIME type accepts neither the `T` separator nor a UTC offset, and
+    has no timezone-aware storage, so this parses the string and re-formats
+    it as a naive `YYYY-MM-DD HH:MM:SS` value, preserving the same
+    wall-clock numbers the string already carried.
+    """
+    if value is None:
+        return None
+    parsed = datetime.fromisoformat(value)
+    if parsed.tzinfo is not None:
+        parsed = parsed.replace(tzinfo=None)
+    return parsed.strftime("%Y-%m-%d %H:%M:%S")
 
 
 class DatabaseManager:
@@ -32,6 +68,7 @@ class DatabaseManager:
                 database=self.settings.database,
                 cursorclass=pymysql.cursors.DictCursor,
                 autocommit=False,
+                conv=_STRING_TEMPORAL_CONVERSIONS,
             )
         except pymysql.err.Error as exc:
             raise DatabaseConnectionError(
@@ -184,8 +221,8 @@ class DatabaseManager:
                                 record["metric_name"],
                                 record["source_type"],
                                 record.get("source_name"),
-                                record["start_at"],
-                                record["end_at"],
+                                _to_mariadb_datetime(record["start_at"]),
+                                _to_mariadb_datetime(record["end_at"]),
                                 record.get("value"),
                                 record.get("unit"),
                                 json.dumps(record.get("metadata", {})),
@@ -261,8 +298,8 @@ class DatabaseManager:
                         record["metric_name"],
                         record["source_type"],
                         record.get("source_name"),
-                        record["start_at"],
-                        record["end_at"],
+                        _to_mariadb_datetime(record["start_at"]),
+                        _to_mariadb_datetime(record["end_at"]),
                         record.get("value"),
                         record.get("unit"),
                         json.dumps(record.get("metadata", {})),
@@ -365,8 +402,8 @@ class DatabaseManager:
                             (
                                 import_id,
                                 session["night_date"],
-                                session.get("bedtime_at"),
-                                session.get("wake_at"),
+                                _to_mariadb_datetime(session.get("bedtime_at")),
+                                _to_mariadb_datetime(session.get("wake_at")),
                                 session.get("total_sleep_hours"),
                                 session.get("time_in_bed_hours"),
                                 session.get("sleep_efficiency"),
