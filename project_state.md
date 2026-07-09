@@ -3,12 +3,12 @@
 ## Project
 - Name: `Apple Health Data Analyzer`
 - Repo root: `/home/jimjamscozz/Desktop/Coding Files/Python/Projects/Apple-Data-Visualizer`
-- Stack: Python 3, PySide6, SQLite
+- Stack: Python 3, PySide6, MariaDB (via PyMySQL)
 - Current date of handoff: `2026-04-16`
 
 ## Current Status
 - Phase 1 completed: application shell, entrypoint, package layout, theme, placeholder pages.
-- Phase 2 completed: SQLite bootstrap, schema creation, indexes, database manager foundation.
+- Phase 2 completed: database bootstrap, schema creation, indexes, database manager foundation. Originally SQLite; migrated to a networked MariaDB server (see `docs/mariadb-migration-spec.md` and `docs/mariadb-migration-plan.md`).
 - Phase 3 completed: import pipeline, zip/XML resolution, Apple Health XML parsing, normalization, duplicate detection, persistence, and UI import wiring.
 - Phase 4 is partially implemented: nightly sleep sessions are now derived and persisted after import, and overview cards now read real sleep, steps, and resting-HR metrics when data exists.
 
@@ -61,7 +61,8 @@
   - `docs/implementation-plan.md`
 
 ## Database Notes
-- SQLite file location is derived from `app/config.py`.
+- The app connects to MariaDB using `DatabaseSettings` from `app/database/config.py` (env vars / `.env`: `APPLE_DV_DB_HOST/PORT/NAME/USER/PASSWORD`). Schema DDL lives in `app/database/schema.py`. There is no local/file-based storage mode.
+- `records.start_at`/`end_at` and `sleep_sessions.bedtime_at`/`wake_at` are native `DATETIME` columns; `DatabaseManager` normalizes the parser's offset-bearing ISO 8601 strings on write and returns plain strings (not driver-native `datetime`/`date` objects) on read, so every caller above the database layer still sees the same string-typed values it always did.
 - Current logical tables:
   - `records`
   - `sleep_sessions`
@@ -131,11 +132,13 @@ python3 -m compileall app main.py
 
 ## Run Instructions
 ```bash
-python3 -m pip install -r requirements.txt
-python3 main.py
+cp .env.example .env   # fill in your MariaDB connection details
+uv sync
+uv run apple-data-visualizer
 ```
+See the "Database Setup (MariaDB)" section of `README.md` for the `CREATE DATABASE`/`CREATE USER`/`GRANT` SQL to run against the MariaDB server first.
 
 ## Notes For Another Device
 - The handoff assumes the repo contents are synced, including this file.
-- If the new device has no existing local app data yet, the SQLite DB will be created on first run.
-- If the new device already has an old local DB in the configured app data directory, be aware that code and local data may be out of sync.
+- A running MariaDB server (10.5+) reachable from the new device is required — there is no local/file-based fallback. Set up `.env` per `README.md` before launching.
+- The app connects to the same MariaDB database regardless of which device it's launched from, so data is already shared/synced across devices by virtue of the storage backend — there is no per-device local DB to get out of sync.
