@@ -71,6 +71,40 @@ python3 -m pip install -r requirements.txt
 python3 main.py
 ```
 
+## Database Setup (MariaDB)
+
+The app currently stores data in a local SQLite file. A migration to a
+MariaDB server on your LAN is planned — see `docs/mariadb-migration-spec.md`
+and `docs/mariadb-migration-plan.md` for the full spec and phased rollout.
+
+Once you have a MariaDB server running on your network, create the
+application database, user, and privileges by running the following against
+it (for example via `mysql -h <server-host> -u root -p`):
+
+```sql
+CREATE DATABASE IF NOT EXISTS apple_health_data
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'apple_health_app'@'%' IDENTIFIED BY 'change-me-strong-password';
+
+GRANT ALL PRIVILEGES ON apple_health_data.* TO 'apple_health_app'@'%';
+
+FLUSH PRIVILEGES;
+```
+
+Notes:
+
+- Replace `change-me-strong-password` with a strong password of your own —
+  do not commit real credentials to this repo.
+- `'apple_health_app'@'%'` allows the app user to connect from any host on
+  the network. If you want to restrict this to your LAN subnet, replace `%`
+  with a host pattern such as `'192.168.1.%'`.
+- This SQL only provisions the database and credentials. Application-side
+  configuration (host/port/user/password wiring) and the schema/driver port
+  from SQLite are tracked in `docs/mariadb-migration-plan.md` and have not
+  landed yet — the running app still uses SQLite until that work is done.
+
 ## Import Apple Health Data
 
 ### Export from the Health app on iPhone
@@ -102,3 +136,8 @@ The repo's implementation source of truth now lives in:
 - `docs/implementation-plan.md`
 
 These docs translate the original design brief into an MVP-first product spec and phased execution roadmap for the project.
+
+The planned move from SQLite to a LAN MariaDB server is tracked separately in:
+
+- `docs/mariadb-migration-spec.md`
+- `docs/mariadb-migration-plan.md`
