@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -m compileall app main.py -q)"
+      "Bash(python -m compileall app main.py -q)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(git add *)"
     ]
   }
 }

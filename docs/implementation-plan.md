@@ -1,11 +1,13 @@
 # Apple Health Data Analyzer Implementation Plan
 
 ## Summary
+
 This implementation plan converts the spec sheet into a phased execution roadmap for the repository. It assumes an MVP-first delivery where the strongest early experience is a polished import workflow, reliable normalized storage, a strong overview dashboard, and an especially good sleep analytics module.
 
 The plan is designed to minimize rework: build the application shell and data model once, then layer parsing, analytics, and UI features on top in a sequence that keeps the app runnable throughout development.
 
 ## Phase 1: Foundation
+
 **Purpose**
 Establish the application skeleton, runtime entrypoint, visual shell, and shared constants so future work lands in stable structure rather than ad hoc files.
 
@@ -33,6 +35,7 @@ Establish the application skeleton, runtime entrypoint, visual shell, and shared
 - Most page content can be static while the shell is wired
 
 ## Phase 2: Data Layer
+
 **Purpose**
 Create the persistent storage foundation and establish the boundary between business logic and SQL.
 
@@ -61,6 +64,7 @@ Create the persistent storage foundation and establish the boundary between busi
 - Migration support can begin as simple versioned bootstrap logic
 
 ## Phase 3: Import and Parsing
+
 **Purpose**
 Implement the end-to-end import pipeline that turns an Apple Health export into normalized stored records.
 
@@ -89,6 +93,7 @@ Implement the end-to-end import pipeline that turns an Apple Health export into 
 - Unsupported types can be logged and skipped
 
 ## Phase 4: Sleep Analytics MVP
+
 **Purpose**
 Deliver the app’s signature capability by turning sleep-related records into nightly, human-readable analysis.
 
@@ -122,6 +127,7 @@ Deliver the app’s signature capability by turning sleep-related records into n
 - Consistency scoring can begin as a clear rule-based heuristic
 
 ## Phase 5: UI MVP
+
 **Purpose**
 Replace placeholders with usable, polished dashboard experiences backed by real or fallback data.
 
@@ -149,10 +155,12 @@ Replace placeholders with usable, polished dashboard experiences backed by real 
 - Table-level search can wait until a later pass
 
 ## Phase 6: Expansion Pass
+
 **Purpose**
 Broaden the app beyond the MVP centerpieces without destabilizing the core experience.
 
 ### First Expansion Slice: Heart / Recovery
+
 Because the HRV graph is already in place, the first Phase 6 priority should be a focused Heart / Recovery page that adds interpretation around HRV before broadening into every available metric.
 
 **Deliverables**
@@ -204,6 +212,7 @@ Because the HRV graph is already in place, the first Phase 6 priority should be 
 - Correlation analysis can remain simple and rule-based
 
 ## Phase 7: Packaging and Documentation
+
 **Purpose**
 Make the project runnable, understandable, and ready for future packaging.
 
@@ -228,6 +237,7 @@ Make the project runnable, understandable, and ready for future packaging.
 ## Public Interfaces and Type Boundaries
 
 ### Normalized Record Shape
+
 Parser output should define a stable record model carrying:
 - normalized metric name
 - original Apple source type
@@ -240,12 +250,14 @@ Parser output should define a stable record model carrying:
 This shape is the contract between parsing, persistence, analytics, and UI-read models.
 
 ### Database Responsibilities
+
 - `records` stores normalized imported rows
 - `sleep_sessions` stores derived nightly sleep summaries
 - `daily_summaries` stores aggregated day-level metrics
 - `import_history` stores file identity, import timestamps, status, counts, and duplicate detection results
 
 ### Service Boundaries
+
 - Parser transforms XML into normalized records
 - Import service owns file handling, orchestration, duplicate detection, and persistence coordination
 - Database manager owns schema and SQL access
@@ -253,12 +265,15 @@ This shape is the contract between parsing, persistence, analytics, and UI-read 
 - Dashboard controller assembles page-ready view data without embedding domain logic in widgets
 
 ### Dashboard Contracts
+
 Overview page inputs:
+
 - summary metrics
 - recent trend datasets
 - latest import status
 
 Sleep page inputs:
+
 - nightly sleep dataset
 - bedtime and wake-time series
 - weekly rollups
@@ -267,6 +282,7 @@ Sleep page inputs:
 Both pages must support a polished empty-state path and a data-backed path without changing their high-level layout.
 
 ## Acceptance Test Scenarios
+
 - App launches from `main.py` and initializes the database if it does not exist
 - Import accepts a valid `export.xml`
 - Import accepts a valid zip and auto-finds `export.xml`
@@ -279,6 +295,7 @@ Both pages must support a polished empty-state path and a data-backed path witho
 - Sleep page filters behave correctly for 7, 30, and 90 day windows plus custom range handling
 
 ## Defaults and Assumptions
+
 - Repo-native docs are the implementation source of truth.
 - The external design brief remains the inspiration document rather than the working contract.
 - MVP priority is import, storage, overview, and sleep.

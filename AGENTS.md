@@ -5,6 +5,7 @@
 ## Implementation Summary
 
 ### 2026-07-09
+- Fixed MD022 markdownlint violations in `docs/implementation-plan.md` by adding blank lines below all headings that were immediately followed by content.
 - Started implementing the SQLite → MariaDB migration plan (`docs/mariadb-migration-plan.md`), Phase 1: Connection Configuration.
 - Added `pymysql` and `python-dotenv` dependencies to `pyproject.toml`.
 - Added `app/database/config.py` with `DatabaseSettings` and `get_database_settings()`, sourcing MariaDB connection settings from environment variables (`APPLE_DV_DB_HOST`, `APPLE_DV_DB_PORT`, `APPLE_DV_DB_NAME`, `APPLE_DV_DB_USER`, `APPLE_DV_DB_PASSWORD`), with a `.env` file loaded via `python-dotenv` and a clear `MissingDatabaseSettingsError` when required values are absent.
