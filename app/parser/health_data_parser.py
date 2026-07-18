@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
+from typing import BinaryIO, Callable
 import xml.etree.ElementTree as ET
 
 
@@ -30,6 +31,27 @@ SLEEP_STAGE_MAP = {
 }
 
 
+class _ProgressTrackingReader:
+    """Wraps a binary file object so ET.iterparse's reads can drive a progress callback."""
+
+    def __init__(self, file_obj: BinaryIO, total_size: int, on_progress: Callable[[int], None]) -> None:
+        self._file_obj = file_obj
+        self._total_size = total_size
+        self._on_progress = on_progress
+        self._bytes_read = 0
+        self._last_reported_percent = -1
+
+    def read(self, size: int = -1) -> bytes:
+        chunk = self._file_obj.read(size)
+        self._bytes_read += len(chunk)
+        if self._total_size:
+            percent = min(100, int(self._bytes_read * 100 / self._total_size))
+            if percent != self._last_reported_percent:
+                self._last_reported_percent = percent
+                self._on_progress(percent)
+        return chunk
+
+
 class HealthDataParser:
     def parse(self, export_xml_path: Path) -> tuple[list[dict], list[str]]:
         records: list[dict] = []
@@ -45,45 +67,52 @@ class HealthDataParser:
         export_xml_path: Path,
         *,
         on_record,
+        on_progress: Callable[[int], None] | None = None,
     ) -> list[str]:
         warnings: list[str] = []
         unsupported_types: Counter[str] = Counter()
         malformed_count = 0
 
-        try:
-            context = ET.iterparse(export_xml_path, events=("end",))
-        except ET.ParseError as exc:
-            raise ValueError(f"The XML file could not be parsed: {exc}") from exc
-
-        seen_root = False
-        for _, element in context:
-            tag_name = self._local_name(element.tag)
-
-            if not seen_root and tag_name == "HealthData":
-                seen_root = True
-
-            if tag_name != "Record":
-                element.clear()
-                continue
-
-            source_type = element.attrib.get("type", "")
-            metric_name = APPLE_RECORD_TYPE_MAP.get(source_type)
-            if metric_name is None:
-                unsupported_types[source_type or "UnknownRecordType"] += 1
-                element.clear()
-                continue
+        with export_xml_path.open("rb") as raw_file:
+            source: BinaryIO = raw_file
+            if on_progress is not None:
+                total_size = export_xml_path.stat().st_size
+                source = _ProgressTrackingReader(raw_file, total_size, on_progress)
 
             try:
-                normalized_record = self._parse_record(metric_name, source_type, element.attrib)
-            except ValueError as exc:
-                malformed_count += 1
-                if len(warnings) < MAX_WARNING_DETAILS:
-                    warnings.append(str(exc))
-                element.clear()
-                continue
+                context = ET.iterparse(source, events=("end",))
+            except ET.ParseError as exc:
+                raise ValueError(f"The XML file could not be parsed: {exc}") from exc
 
-            on_record(normalized_record)
-            element.clear()
+            seen_root = False
+            for _, element in context:
+                tag_name = self._local_name(element.tag)
+
+                if not seen_root and tag_name == "HealthData":
+                    seen_root = True
+
+                if tag_name != "Record":
+                    element.clear()
+                    continue
+
+                source_type = element.attrib.get("type", "")
+                metric_name = APPLE_RECORD_TYPE_MAP.get(source_type)
+                if metric_name is None:
+                    unsupported_types[source_type or "UnknownRecordType"] += 1
+                    element.clear()
+                    continue
+
+                try:
+                    normalized_record = self._parse_record(metric_name, source_type, element.attrib)
+                except ValueError as exc:
+                    malformed_count += 1
+                    if len(warnings) < MAX_WARNING_DETAILS:
+                        warnings.append(str(exc))
+                    element.clear()
+                    continue
+
+                on_record(normalized_record)
+                element.clear()
 
         if not seen_root:
             raise ValueError("The selected XML does not look like an Apple Health export.")

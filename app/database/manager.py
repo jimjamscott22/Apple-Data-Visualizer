@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 import pymysql
 import pymysql.cursors
@@ -599,6 +599,9 @@ class DatabaseManager:
 
         with connection.cursor() as cursor:
             for metric_name, summary_date in impacted_keys:
+                range_start = f"{summary_date} 00:00:00"
+                range_end_date = date.fromisoformat(summary_date) + timedelta(days=1)
+                range_end = f"{range_end_date.isoformat()} 00:00:00"
                 cursor.execute(
                     """
                     SELECT
@@ -609,10 +612,11 @@ class DatabaseManager:
                         COUNT(*) AS sample_count
                     FROM records
                     WHERE metric_name = %s
-                      AND DATE(start_at) = %s
+                      AND start_at >= %s
+                      AND start_at < %s
                       AND value IS NOT NULL
                     """,
-                    (metric_name, summary_date),
+                    (metric_name, range_start, range_end),
                 )
                 aggregate_row = cursor.fetchone()
 
