@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 import shutil
 import tempfile
+from typing import Callable
 import zipfile
 
 from app.database.manager import DatabaseManager
@@ -44,10 +45,17 @@ class ImportService:
             detected_type=detected_type,
         )
 
-    def import_file(self, selected_path: str) -> ImportResult:
+    def import_file(
+        self,
+        selected_path: str,
+        *,
+        on_progress: Callable[[int, str], None] | None = None,
+    ) -> ImportResult:
         resolved: ResolvedImportSource | None = None
         fingerprint: str | None = None
         try:
+            if on_progress is not None:
+                on_progress(0, "Preparing file…")
             resolved = self._resolve_source(Path(selected_path))
             fingerprint = self._fingerprint_file(resolved.export_xml_path)
 
@@ -105,10 +113,18 @@ class ImportService:
                     if len(batch) >= self.IMPORT_BATCH_SIZE:
                         flush_batch()
 
+                parse_progress = (
+                    (lambda percent: on_progress(percent, "Parsing & importing records…"))
+                    if on_progress is not None
+                    else None
+                )
                 warnings = self.parser.parse_stream(
                     resolved.export_xml_path,
                     on_record=collect_record,
+                    on_progress=parse_progress,
                 )
+                if on_progress is not None:
+                    on_progress(100, "Finishing up…")
                 flush_batch()
                 self.database_manager.complete_import(
                     connection,
