@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QListWidgetItem,
     QMainWindow,
     QMessageBox,
+    QProgressBar,
     QPushButton,
     QScrollArea,
     QStackedWidget,
@@ -22,8 +23,10 @@ from PySide6.QtWidgets import (
 from app.config import APP_NAME
 from app.database.config import DatabaseSettings
 from app.models.dashboard import OverviewData
+from app.models.imports import ImportResult
 from app.services.dashboard_controller import DashboardController
 from app.services.import_service import ImportService
+from app.ui.import_worker import run_import_in_background
 from app.ui.pages.base import OverviewPage, PlaceholderPage
 from app.ui.pages.hrv_page import HRVPage
 from app.ui.pages.sleep_page import SleepPage
@@ -43,6 +46,8 @@ class MainWindow(QMainWindow):
         self.database_settings = database_settings
         self.dashboard_controller = dashboard_controller
         self.import_service = import_service
+        self._import_thread = None
+        self._import_worker = None
 
         self.setWindowTitle(APP_NAME)
         self.resize(1440, 920)
@@ -128,12 +133,26 @@ class MainWindow(QMainWindow):
         self.import_button = QPushButton("Import Apple Health Export")
         self.import_button.setMinimumWidth(HEADER_BUTTON_WIDTH)
         self.import_button.clicked.connect(self._select_import_file)
+
+        self.import_progress_bar = QProgressBar()
+        self.import_progress_bar.setRange(0, 100)
+        self.import_progress_bar.setMinimumWidth(HEADER_BUTTON_WIDTH)
+        self.import_progress_bar.setVisible(False)
+
+        self.import_status_label = QLabel("")
+        self.import_status_label.setObjectName("BodyMuted")
+        self.import_status_label.setMinimumWidth(HEADER_BUTTON_WIDTH)
+        self.import_status_label.setWordWrap(True)
+        self.import_status_label.setVisible(False)
+
         database_info_button = QPushButton("Database Info")
         database_info_button.setObjectName("SecondaryButton")
         database_info_button.setMinimumWidth(HEADER_BUTTON_WIDTH)
         database_info_button.clicked.connect(self._show_database_info)
 
         actions.addWidget(self.import_button)
+        actions.addWidget(self.import_progress_bar)
+        actions.addWidget(self.import_status_label)
         actions.addWidget(database_info_button)
 
         header_layout.addLayout(header_copy, 1)
@@ -239,7 +258,28 @@ class MainWindow(QMainWindow):
         if not selected_path:
             return
 
-        result = self.import_service.import_file(selected_path)
+        self.import_button.setEnabled(False)
+        self.import_progress_bar.setValue(0)
+        self.import_progress_bar.setVisible(True)
+        self.import_status_label.setText("Starting import…")
+        self.import_status_label.setVisible(True)
+
+        self._import_thread, self._import_worker = run_import_in_background(
+            self.import_service,
+            selected_path,
+            on_progress=self._handle_import_progress,
+            on_finished=self._handle_import_finished,
+        )
+
+    def _handle_import_progress(self, percent: int, phase: str) -> None:
+        self.import_progress_bar.setValue(percent)
+        self.import_status_label.setText(phase)
+
+    def _handle_import_finished(self, result: ImportResult) -> None:
+        self.import_button.setEnabled(True)
+        self.import_progress_bar.setVisible(False)
+        self.import_status_label.setVisible(False)
+
         if result.is_success:
             self.refresh_pages()
             title = "Import Complete"
