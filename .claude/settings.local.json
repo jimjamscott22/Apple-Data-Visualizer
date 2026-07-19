@@ -7,5 +7,19 @@
       "Bash(echo \"exit:$?\")",
       "Bash(git add *)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "python-sdk"
+  ],
+  "disabledMcpjsonServers": [
+    "docker",
+    "jupyter",
+    "postgresql",
+    "opik",
+    "memory-bank",
+    "sequential-thinking",
+    "brave-search",
+    "google-maps",
+    "deep-graph"
+  ]
 }
