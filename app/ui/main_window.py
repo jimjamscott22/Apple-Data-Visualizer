@@ -27,6 +27,7 @@ from app.models.imports import ImportResult
 from app.services.dashboard_controller import DashboardController
 from app.services.import_service import ImportService
 from app.ui.import_worker import run_import_in_background
+from app.ui.pages.activity_page import ActivityPage
 from app.ui.pages.base import OverviewPage, PlaceholderPage
 from app.ui.pages.hrv_page import HRVPage
 from app.ui.pages.sleep_page import SleepPage
@@ -161,17 +162,11 @@ class MainWindow(QMainWindow):
         self.page_stack = QStackedWidget()
         self.overview_page = OverviewPage()
         self.sleep_page = SleepPage(on_range_changed=self._handle_sleep_range_changed)
+        self.activity_page = ActivityPage(on_range_changed=self._handle_activity_range_changed)
         self.hrv_page = HRVPage()
         self.trends_page = TrendsPage(on_range_changed=self._handle_trends_range_changed)
         self.page_stack.addWidget(self._scrollable(self.overview_page))
-        self.page_stack.addWidget(
-            self._scrollable(
-                PlaceholderPage(
-                    "Activity page scaffold",
-                    "Reserved for steps, movement trends, and active-day summaries.",
-                )
-            )
-        )
+        self.page_stack.addWidget(self._scrollable(self.activity_page))
         self.page_stack.insertWidget(1, self._scrollable(self.sleep_page))
         self.page_stack.addWidget(self._scrollable(self.hrv_page))
         self.page_stack.addWidget(self._scrollable(self.trends_page))
@@ -212,6 +207,9 @@ class MainWindow(QMainWindow):
         self.sleep_page.render(
             self.dashboard_controller.load_sleep_summary(days=self.sleep_page.current_range())
         )
+        self.activity_page.render(
+            self.dashboard_controller.load_activity_summary(days=self.activity_page.current_range())
+        )
         self.trends_page.render(
             self.dashboard_controller.load_trends_summary(days=self.trends_page.current_range())
         )
@@ -229,6 +227,9 @@ class MainWindow(QMainWindow):
     def _handle_sleep_range_changed(self, days: int) -> None:
         self.sleep_page.render(self.dashboard_controller.load_sleep_summary(days=days))
 
+    def _handle_activity_range_changed(self, days: int) -> None:
+        self.activity_page.render(self.dashboard_controller.load_activity_summary(days=days))
+
     def _handle_trends_range_changed(self, days: int) -> None:
         self.trends_page.render(self.dashboard_controller.load_trends_summary(days=days))
 
@@ -238,7 +239,7 @@ class MainWindow(QMainWindow):
         descriptions = {
             "Overview": "Fast context and import status, backed by your MariaDB server.",
             "Sleep": "Nightly sleep analysis — duration, bedtime and wake trends, efficiency, consistency, and a full nightly sessions table.",
-            "Activity": "Reserved for steps and movement summaries.",
+            "Activity": "Daily activity analysis — steps, walking/running distance, active-day streaks, and per-day history.",
             "Heart": "Heart Rate Variability (HRV) analysis — latest SDNN, 7- and 30-day averages, trend direction, and daily history.",
             "Trends": "Cross-metric relationships — sleep vs next-day HRV and resting HR, steps vs sleep, and weekday/weekend patterns.",
             "Imports": "Reserved for import history and duplicate-detection visibility.",

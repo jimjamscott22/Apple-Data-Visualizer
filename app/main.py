@@ -8,6 +8,7 @@ from app.database.config import MissingDatabaseSettingsError, get_database_setti
 from app.database.errors import DatabaseConnectionError
 from app.database.manager import DatabaseManager
 from app.parser.health_data_parser import HealthDataParser
+from app.services.activity_analysis_service import ActivityAnalysisService
 from app.services.dashboard_controller import DashboardController
 from app.services.hrv_analysis_service import HRVAnalysisService
 from app.services.import_service import ImportService
@@ -40,8 +41,12 @@ def main() -> int:
 
     hrv_analysis_service = HRVAnalysisService()
     trends_analysis_service = TrendsAnalysisService()
+    activity_analysis_service = ActivityAnalysisService()
     dashboard_controller = DashboardController(
-        database_manager, hrv_analysis_service, trends_analysis_service
+        database_manager,
+        hrv_analysis_service,
+        trends_analysis_service,
+        activity_analysis_service,
     )
     import_service = ImportService(
         database_manager=database_manager,
