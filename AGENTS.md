@@ -2,6 +2,17 @@
 
 1. After making changes to this repository, create an implementation summary and update this file.
 
+## Cursor Cloud specific instructions
+
+This is a PySide6 desktop app that requires a running MariaDB server (a hard dependency — the app shows an error dialog and exits 1 without one). Standard dev commands live in `CLAUDE.md` and `README.md`; only the non-obvious cloud caveats are below.
+
+- Dependencies are managed with `uv` (installed at `~/.local/bin/uv`; `uv sync` is handled by the startup update script). Prefix commands with `uv run` (e.g. `uv run apple-data-visualizer`, `uv run pytest`).
+- MariaDB is installed and its data dir is provisioned, but the server is NOT auto-started. Start it before running the app or live DB tests: `sudo mariadbd --user=mysql &` (it listens on `127.0.0.1:3306`). It is already initialized — do not re-run `mariadb-install-db`.
+- The app's DB connection is preconfigured via a gitignored `.env` pointing at the local server (`APPLE_DV_DB_*`, user `apple_health_app`, db `apple_health_data`). The app bootstraps its own schema on first launch.
+- `uv run pytest` alone passes but SKIPS the ~13 live-DB round-trip tests when no TCP-reachable admin account is set. To run the full suite (40 passed), a TCP admin user `testadmin` (password `testadmin`, all privileges) exists; run: `APPLE_DV_TEST_DB_HOST=127.0.0.1 APPLE_DV_TEST_DB_USER=testadmin APPLE_DV_TEST_DB_PASSWORD=testadmin uv run pytest`. Note `root` uses `unix_socket` auth and cannot authenticate over TCP.
+- No linter/formatter is configured; use `uv run python -m compileall app main.py` as the quick syntax gate.
+- GUI: a desktop is available on `DISPLAY=:1` (run `DISPLAY=:1 uv run apple-data-visualizer`). For headless/CI-style checks use `QT_QPA_PLATFORM=offscreen`.
+
 ## Implementation Summary
 
 ### 2026-07-09
