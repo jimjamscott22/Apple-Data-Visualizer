@@ -19,7 +19,8 @@ QLabel {
     background: transparent;
 }
 
-QWidget#HeaderCard, QFrame#MetricCard, QFrame#EmptyStateCard, QFrame#PlaceholderCard {
+QWidget#HeaderCard, QFrame#MetricCard, QFrame#EmptyStateCard, QFrame#PlaceholderCard,
+QFrame#SettingsCard {
     background-color: #0f1b31;
     border: 1px solid #1d2942;
     border-radius: 18px;
@@ -106,6 +107,54 @@ QPushButton#RangeButton:checked {
 
 QPushButton#RangeButton:checked:hover {
     background-color: #3d82ff;
+}
+
+QComboBox {
+    background-color: #16233b;
+    border: 1px solid #253556;
+    border-radius: 10px;
+    color: #eef4ff;
+    min-width: 150px;
+    padding: 8px 12px;
+}
+
+QComboBox:hover, QComboBox:focus {
+    border-color: #3d82ff;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #16233b;
+    border: 1px solid #253556;
+    color: #eef4ff;
+    selection-background-color: #1e6bff;
+}
+
+QCheckBox {
+    color: #d7e4ff;
+    spacing: 10px;
+    padding: 4px 0;
+}
+
+QCheckBox::indicator {
+    background-color: #16233b;
+    border: 1px solid #34497a;
+    border-radius: 4px;
+    height: 17px;
+    width: 17px;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #1e6bff;
+    border-color: #1e6bff;
+}
+
+QLabel#ConnectionStatus {
+    color: #65d6a8;
+    font-weight: 700;
+}
+
+QLabel#SettingsStatus {
+    color: #65d6a8;
 }
 
 QListWidget {

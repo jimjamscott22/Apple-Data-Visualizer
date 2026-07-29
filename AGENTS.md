@@ -15,6 +15,25 @@ This is a PySide6 desktop app that requires a running MariaDB server (a hard dep
 
 ## Implementation Summary
 
+### 2026-07-29
+- Replaced the Settings navigation placeholder with a real `SettingsPage` containing analysis
+  defaults, clock-format selection, import/navigation behavior, read-only MariaDB and
+  application details, and a confirmed Restore Defaults action. The database password is
+  never passed to a display field.
+- Added `AppPreferences` and `PreferenceStore` in `app/preferences.py`, backed by Qt
+  `QSettings`. Preferences cover independent Sleep and Trends default ranges, 12/24-hour
+  display, remembering the last import directory, and restoring the last visited page;
+  invalid persisted values safely fall back to defaults.
+- Applied preference changes immediately: Sleep and Trends range controls and queries refresh,
+  sleep table/summary/axis times switch formats, the file picker reopens at the remembered
+  directory, and navigation can restore its last page on the next launch.
+- Replaced the header's database-info dialog button with a Settings shortcut because connection
+  and version details now live on the page. Connection configuration remains intentionally
+  read-only and continues to come from environment variables or `.env`.
+- Added focused preference, Settings UI/privacy, and clock-format tests in
+  `tests/test_preferences.py`; updated `project_state.md` to record the completed Settings
+  slice and remaining Activity/Imports placeholders.
+
 ### 2026-07-09
 - Fixed MD022 markdownlint violations in `docs/implementation-plan.md` by adding blank lines below all headings that were immediately followed by content.
 - Started implementing the SQLite → MariaDB migration plan (`docs/mariadb-migration-plan.md`), Phase 1: Connection Configuration.
