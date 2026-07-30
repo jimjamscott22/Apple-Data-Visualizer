@@ -15,6 +15,13 @@ This is a PySide6 desktop app that requires a running MariaDB server (a hard dep
 
 ## Implementation Summary
 
+### 2026-07-27
+- Implemented the **Activity** visualization page, replacing the `PlaceholderPage` scaffold that previously sat at nav index 2 (between Sleep and Heart).
+- Added `app/models/activity.py` (`ActivityDayRecord`, `ActivitySummaryData`) and `app/services/activity_analysis_service.py` (`ActivityAnalysisService`) following the existing HRV/Trends service pattern — pure logic over `daily_summaries` rows, no DB access in the service. It merges `step_count` and `walking_running_distance` daily totals by date and computes total/avg steps, best day, total/avg distance, and "active days" (days reaching a 10,000-step goal, `STEP_GOAL`).
+- Wired `DashboardController.load_activity_summary(days=30)` (fetches `get_daily_metric_summaries("step_count"/"walking_running_distance")`) and added `ActivityAnalysisService` as a new constructor arg; `app/main.py` constructs and injects it.
+- Added `app/ui/pages/activity_page.py` (`ActivityPage`) mirroring `SleepPage`: a 7/30/90-day range selector, five metric cards, a "Daily steps" bar chart with an average line, a "Daily walking + running distance" line chart (both via the shared `IndexDateAxisItem`), and a "Daily activity" table (Date / Steps / Distance / Goal, with ✓/— goal markers). `MainWindow` now instantiates it, renders it in `refresh_pages()`, and refreshes it on range change via `_handle_activity_range_changed`.
+- Added `tests/test_activity_analysis_service.py` (7 tests: empty/None inputs, step aggregates, best-day, active-day goal counting, distance aggregates, and merged/sorted multi-metric records). Full suite: 47 passed live.
+- Note: on short ranges the date axis can render a repeated tick label — this is inherited behavior of the shared `IndexDateAxisItem` (Sleep/HRV pages behave the same) and was intentionally left unchanged to keep the shared component consistent.
 ### 2026-07-29
 - Replaced the Settings navigation placeholder with a real `SettingsPage` containing analysis
   defaults, clock-format selection, import/navigation behavior, read-only MariaDB and
