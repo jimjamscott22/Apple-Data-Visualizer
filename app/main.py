@@ -4,11 +4,13 @@ import sys
 
 from PySide6.QtWidgets import QApplication, QMessageBox
 
+from app.config import APP_NAME, APP_VERSION
 from app.database.config import MissingDatabaseSettingsError, get_database_settings
 from app.database.errors import DatabaseConnectionError
 from app.database.manager import DatabaseManager
 from app.parser.health_data_parser import HealthDataParser
 from app.services.activity_analysis_service import ActivityAnalysisService
+from app.preferences import PreferenceStore
 from app.services.dashboard_controller import DashboardController
 from app.services.hrv_analysis_service import HRVAnalysisService
 from app.services.import_service import ImportService
@@ -20,8 +22,12 @@ from app.ui.main_window import MainWindow
 
 def main() -> int:
     app = QApplication(sys.argv)
-    app.setApplicationName("Apple Health Data Analyzer")
+    app.setOrganizationName("Apple Data Visualizer")
+    app.setApplicationName(APP_NAME)
+    app.setApplicationVersion(APP_VERSION)
     app.setStyleSheet(APP_STYLESHEET)
+    preference_store = PreferenceStore()
+    preferences = preference_store.load()
 
     try:
         database_settings = get_database_settings()
@@ -58,6 +64,9 @@ def main() -> int:
         database_settings=database_settings,
         dashboard_controller=dashboard_controller,
         import_service=import_service,
+        preference_store=preference_store,
+        preferences=preferences,
+        app_version=APP_VERSION,
     )
     window.show()
     return app.exec()

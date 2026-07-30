@@ -22,6 +22,24 @@ This is a PySide6 desktop app that requires a running MariaDB server (a hard dep
 - Added `app/ui/pages/activity_page.py` (`ActivityPage`) mirroring `SleepPage`: a 7/30/90-day range selector, five metric cards, a "Daily steps" bar chart with an average line, a "Daily walking + running distance" line chart (both via the shared `IndexDateAxisItem`), and a "Daily activity" table (Date / Steps / Distance / Goal, with ✓/— goal markers). `MainWindow` now instantiates it, renders it in `refresh_pages()`, and refreshes it on range change via `_handle_activity_range_changed`.
 - Added `tests/test_activity_analysis_service.py` (7 tests: empty/None inputs, step aggregates, best-day, active-day goal counting, distance aggregates, and merged/sorted multi-metric records). Full suite: 47 passed live.
 - Note: on short ranges the date axis can render a repeated tick label — this is inherited behavior of the shared `IndexDateAxisItem` (Sleep/HRV pages behave the same) and was intentionally left unchanged to keep the shared component consistent.
+### 2026-07-29
+- Replaced the Settings navigation placeholder with a real `SettingsPage` containing analysis
+  defaults, clock-format selection, import/navigation behavior, read-only MariaDB and
+  application details, and a confirmed Restore Defaults action. The database password is
+  never passed to a display field.
+- Added `AppPreferences` and `PreferenceStore` in `app/preferences.py`, backed by Qt
+  `QSettings`. Preferences cover independent Sleep and Trends default ranges, 12/24-hour
+  display, remembering the last import directory, and restoring the last visited page;
+  invalid persisted values safely fall back to defaults.
+- Applied preference changes immediately: Sleep and Trends range controls and queries refresh,
+  sleep table/summary/axis times switch formats, the file picker reopens at the remembered
+  directory, and navigation can restore its last page on the next launch.
+- Replaced the header's database-info dialog button with a Settings shortcut because connection
+  and version details now live on the page. Connection configuration remains intentionally
+  read-only and continues to come from environment variables or `.env`.
+- Added focused preference, Settings UI/privacy, and clock-format tests in
+  `tests/test_preferences.py`; updated `project_state.md` to record the completed Settings
+  slice and remaining Activity/Imports placeholders.
 
 ### 2026-07-09
 - Fixed MD022 markdownlint violations in `docs/implementation-plan.md` by adding blank lines below all headings that were immediately followed by content.

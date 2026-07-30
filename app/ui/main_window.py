@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -24,6 +25,7 @@ from app.config import APP_NAME
 from app.database.config import DatabaseSettings
 from app.models.dashboard import OverviewData
 from app.models.imports import ImportResult
+from app.preferences import AppPreferences, PreferenceStore
 from app.services.dashboard_controller import DashboardController
 from app.services.import_service import ImportService
 from app.ui.import_worker import run_import_in_background
@@ -31,6 +33,7 @@ from app.ui.pages.activity_page import ActivityPage
 from app.ui.pages.base import OverviewPage, PlaceholderPage
 from app.ui.pages.hrv_page import HRVPage
 from app.ui.pages.sleep_page import SleepPage
+from app.ui.pages.settings_page import SettingsPage
 from app.ui.pages.trends_page import TrendsPage
 
 HEADER_BUTTON_WIDTH = 230
@@ -42,11 +45,17 @@ class MainWindow(QMainWindow):
         database_settings: DatabaseSettings,
         dashboard_controller: DashboardController,
         import_service: ImportService,
+        preference_store: PreferenceStore,
+        preferences: AppPreferences,
+        app_version: str,
     ) -> None:
         super().__init__()
         self.database_settings = database_settings
         self.dashboard_controller = dashboard_controller
         self.import_service = import_service
+        self.preference_store = preference_store
+        self.preferences = preferences
+        self.app_version = app_version
         self._import_thread = None
         self._import_worker = None
 
@@ -66,7 +75,13 @@ class MainWindow(QMainWindow):
         shell_layout.addWidget(sidebar)
         shell_layout.addWidget(content, 1)
 
-        self._handle_navigation_changed(0)
+        initial_page = self.preference_store.last_page_index() if preferences.restore_last_page else 0
+        if not 0 <= initial_page < self.page_stack.count():
+            initial_page = 0
+        self.navigation.blockSignals(True)
+        self.navigation.setCurrentRow(initial_page)
+        self.navigation.blockSignals(False)
+        self._handle_navigation_changed(initial_page)
         self.refresh_pages()
 
     def _build_sidebar(self) -> QWidget:
@@ -146,15 +161,15 @@ class MainWindow(QMainWindow):
         self.import_status_label.setWordWrap(True)
         self.import_status_label.setVisible(False)
 
-        database_info_button = QPushButton("Database Info")
-        database_info_button.setObjectName("SecondaryButton")
-        database_info_button.setMinimumWidth(HEADER_BUTTON_WIDTH)
-        database_info_button.clicked.connect(self._show_database_info)
+        settings_button = QPushButton("Settings")
+        settings_button.setObjectName("SecondaryButton")
+        settings_button.setMinimumWidth(HEADER_BUTTON_WIDTH)
+        settings_button.clicked.connect(self._navigate_to_settings)
 
         actions.addWidget(self.import_button)
         actions.addWidget(self.import_progress_bar)
         actions.addWidget(self.import_status_label)
-        actions.addWidget(database_info_button)
+        actions.addWidget(settings_button)
 
         header_layout.addLayout(header_copy, 1)
         header_layout.addLayout(actions)
@@ -163,8 +178,23 @@ class MainWindow(QMainWindow):
         self.overview_page = OverviewPage()
         self.sleep_page = SleepPage(on_range_changed=self._handle_sleep_range_changed)
         self.activity_page = ActivityPage(on_range_changed=self._handle_activity_range_changed)
+        self.sleep_page = SleepPage(
+            on_range_changed=self._handle_sleep_range_changed,
+            initial_range=self.preferences.sleep_range_days,
+            clock_format=self.preferences.clock_format,
+        )
         self.hrv_page = HRVPage()
-        self.trends_page = TrendsPage(on_range_changed=self._handle_trends_range_changed)
+        self.trends_page = TrendsPage(
+            on_range_changed=self._handle_trends_range_changed,
+            initial_range=self.preferences.trends_range_days,
+        )
+        self.settings_page = SettingsPage(
+            database_settings=self.database_settings,
+            app_version=self.app_version,
+            preferences=self.preferences,
+        )
+        self.settings_page.preferences_saved.connect(self._apply_preferences)
+        self.settings_page.defaults_requested.connect(self._restore_default_preferences)
         self.page_stack.addWidget(self._scrollable(self.overview_page))
         self.page_stack.addWidget(self._scrollable(self.activity_page))
         self.page_stack.insertWidget(1, self._scrollable(self.sleep_page))
@@ -178,14 +208,7 @@ class MainWindow(QMainWindow):
                 )
             )
         )
-        self.page_stack.addWidget(
-            self._scrollable(
-                PlaceholderPage(
-                    "Settings page scaffold",
-                    "Reserved for database location, date-range defaults, and theme expansion.",
-                )
-            )
-        )
+        self.page_stack.addWidget(self._scrollable(self.settings_page))
 
         layout.addWidget(header)
         layout.addWidget(self.page_stack, 1)
@@ -234,7 +257,10 @@ class MainWindow(QMainWindow):
         self.trends_page.render(self.dashboard_controller.load_trends_summary(days=days))
 
     def _handle_navigation_changed(self, index: int) -> None:
+        if not 0 <= index < self.page_stack.count():
+            return
         self.page_stack.setCurrentIndex(index)
+        self.preference_store.set_last_page_index(index)
         page_names = ["Overview", "Sleep", "Activity", "Heart", "Trends", "Imports", "Settings"]
         descriptions = {
             "Overview": "Fast context and import status, backed by your MariaDB server.",
@@ -243,21 +269,28 @@ class MainWindow(QMainWindow):
             "Heart": "Heart Rate Variability (HRV) analysis — latest SDNN, 7- and 30-day averages, trend direction, and daily history.",
             "Trends": "Cross-metric relationships — sleep vs next-day HRV and resting HR, steps vs sleep, and weekday/weekend patterns.",
             "Imports": "Reserved for import history and duplicate-detection visibility.",
-            "Settings": "Reserved for local configuration and future customization.",
+            "Settings": "Analysis defaults, display preferences, and application information.",
         }
         page_name = page_names[index]
         self.page_title.setText(page_name)
         self.page_description.setText(descriptions[page_name])
 
     def _select_import_file(self) -> None:
+        initial_directory = ""
+        if self.preferences.remember_import_directory:
+            remembered = Path(self.preference_store.last_import_directory())
+            if remembered.is_dir():
+                initial_directory = str(remembered)
         selected_path, _ = QFileDialog.getOpenFileName(
             self,
             "Select Apple Health Export",
-            "",
+            initial_directory,
             "Apple Health Exports (*.xml *.zip);;All Files (*)",
         )
         if not selected_path:
             return
+        if self.preferences.remember_import_directory:
+            self.preference_store.set_last_import_directory(str(Path(selected_path).parent))
 
         self.import_button.setEnabled(False)
         self.import_progress_bar.setValue(0)
@@ -293,13 +326,22 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "Import Failed", result.message)
 
-    def _show_database_info(self) -> None:
-        settings = self.database_settings
-        QMessageBox.information(
-            self,
-            "Database Info",
-            "Connected to MariaDB:\n\n"
-            f"Host: {settings.host}:{settings.port}\n"
-            f"Database: {settings.database}\n"
-            f"User: {settings.user}",
-        )
+    def _navigate_to_settings(self) -> None:
+        self.navigation.setCurrentRow(6)
+
+    def _apply_preferences(self, preferences: AppPreferences) -> None:
+        self.preference_store.save(preferences)
+        if not preferences.remember_import_directory:
+            self.preference_store.clear_last_import_directory()
+        self.preferences = preferences
+        self.settings_page.set_preferences(preferences)
+        self.sleep_page.set_range(preferences.sleep_range_days)
+        self.sleep_page.set_clock_format(preferences.clock_format)
+        self.trends_page.set_range(preferences.trends_range_days)
+        self.refresh_pages()
+        self.settings_page.show_saved()
+
+    def _restore_default_preferences(self) -> None:
+        defaults = self.preference_store.reset()
+        self._apply_preferences(defaults)
+        self.settings_page.show_saved("Default settings restored.")

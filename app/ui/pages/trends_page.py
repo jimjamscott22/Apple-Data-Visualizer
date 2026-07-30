@@ -21,10 +21,11 @@ from app.charts import (
     style_axes,
 )
 from app.models.trends import CorrelationResult, SplitComparison, TrendsSummaryData
+from app.preferences import TRENDS_RANGE_OPTIONS
 from app.ui.pages.base import EmptyStateCard, MetricCard
 
 
-RANGE_OPTIONS = [30, 90, 365]
+RANGE_OPTIONS = TRENDS_RANGE_OPTIONS
 
 
 class TrendsPage(QWidget):
@@ -33,12 +34,13 @@ class TrendsPage(QWidget):
     def __init__(
         self,
         on_range_changed: Callable[[int], None] | None = None,
+        initial_range: int = 90,
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
         self.setObjectName("PageRoot")
         self._on_range_changed = on_range_changed
-        self._current_range = 90
+        self._current_range = initial_range if initial_range in RANGE_OPTIONS else 90
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -125,6 +127,14 @@ class TrendsPage(QWidget):
         self._current_range = days
         if self._on_range_changed is not None:
             self._on_range_changed(days)
+
+    def set_range(self, days: int) -> None:
+        if days not in RANGE_OPTIONS:
+            raise ValueError(f"Unsupported trends range: {days}")
+        self._current_range = days
+        button = self._range_group.button(days)
+        if button is not None:
+            button.setChecked(True)
 
     def current_range(self) -> int:
         return self._current_range

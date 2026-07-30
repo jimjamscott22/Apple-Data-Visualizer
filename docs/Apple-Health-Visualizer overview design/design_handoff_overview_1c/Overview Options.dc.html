@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#0e1420;font-family:'Inter',system-ui,sans-serif}
+  .dv-turn{padding:44px 48px 40px;border-bottom:1px solid rgba(255,255,255,.06);scroll-margin-top:16px}
+  .dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 26px}
+  .dv-tid{font:700 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1e6bff;color:#fff;border-radius:4px;text-decoration:none}
+  .dv-tname{font:600 13px/1.2 'Inter',sans-serif;color:#cdd8ea}
+  .dv-opts{display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start}
+  .dv-opt{flex:none;display:flex;flex-direction:column;gap:11px;scroll-margin-top:16px}
+  .dv-oid{font:700 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(255,255,255,.1);color:#cdd8ea;border-radius:5px;text-decoration:none}
+  .dv-olabel{display:flex;align-items:baseline;gap:9px;font:400 12px/1.3 'Inter',sans-serif;color:#7f90ab;max-width:1180px}
+  .dv-opt:target .dv-oid{background:#1e6bff;color:#fff}
+  .dv-next{margin:30px 0 0;font:13px/1.6 'Inter',sans-serif;color:#8397b4}
+  a{color:#4f8dff}a:hover{color:#7db0ff}
+  .win{width:1180px;border-radius:11px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.07);font-family:'Inter',sans-serif}
+  .kbar{display:flex;flex-wrap:wrap;gap:14px}
+  .kcard{flex:1;min-width:150px;background:#0e1c31;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:16px 17px}
+  .keyb{font:600 10px 'Inter',sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#5f80b8;margin:0 0 9px}
+  .knum{font:800 27px/1 'Inter',sans-serif;color:#eef3fa;margin:0 0 9px;letter-spacing:-.01em}
+  .kdesc{font:400 11.5px/1.45 'Inter',sans-serif;color:#7f90ab;margin:0}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Three ways to fill the Overview page</span></div>
+  <div class="dv-opts">
+
+    <!-- ============ OPTION 1a ============ -->
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>By the book — completes the spec: keeps your 5 KPI cards, then adds the embedded recent-trend visuals + record counts the Overview contract calls for. Closest to what you have.</div>
+      <div class="win">
+        <div style="height:30px;background:#05080f;display:flex;align-items:center;justify-content:center;font:400 12px 'Inter';color:#7f90ab">Apple Health Data Analyzer</div>
+        <div style="display:flex;height:740px">
+          <!-- sidebar -->
+          <div style="width:210px;background:#080f1c;border-right:1px solid rgba(255,255,255,.05);padding:24px 18px;box-sizing:border-box">
+            <div style="font:700 10px 'Inter';letter-spacing:.11em;color:#5f80b8;margin-bottom:8px">APPLE HEALTH</div>
+            <div style="font:800 24px 'Inter';color:#f3f7fc;margin-bottom:9px;letter-spacing:-.01em">Analyzer</div>
+            <div style="font:400 11.5px/1.4 'Inter';color:#6f819e;margin-bottom:26px">Desktop analytics for Apple Health exports</div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:#0f2138;border:1px solid rgba(30,107,255,.35);border-left:3px solid #1e6bff;font:600 13.5px 'Inter';color:#eef3fa">Overview</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Sleep</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Activity</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Heart</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Trends</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Imports</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Settings</div>
+            </div>
+          </div>
+          <!-- main -->
+          <div style="flex:1;background:#0a1322;padding:22px 24px;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
+            <!-- header -->
+            <div style="background:#0d1a2e;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:20px 22px;display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <div style="font:600 10px 'Inter';letter-spacing:.09em;text-transform:uppercase;color:#5f80b8;margin-bottom:9px">Data through Jul 17</div>
+                <div style="font:800 26px 'Inter';color:#f3f7fc;margin-bottom:8px;letter-spacing:-.01em">Overview</div>
+                <div style="font:400 13px 'Inter';color:#8397b4">Fast context and import status, backed by your MariaDB server.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;align-items:stretch">
+                <div style="background:#1e6bff;color:#fff;font:600 12.5px 'Inter';padding:11px 20px;border-radius:8px;text-align:center;white-space:nowrap">Import Apple Health Export</div>
+                <div style="background:transparent;border:1px solid rgba(255,255,255,.14);color:#c3d0e4;font:600 12.5px 'Inter';padding:10px 20px;border-radius:8px;text-align:center">Database Info</div>
+              </div>
+            </div>
+            <!-- KPI row -->
+            <div class="kbar">
+              <div class="kcard"><p class="keyb">Avg sleep this week</p><p class="knum">4h 54m</p><p class="kdesc">Based on the latest 7 nights.</p></div>
+              <div class="kcard"><p class="keyb">Last night sleep</p><p class="knum">0h 33m</p><p class="kdesc">Night of 2026-07-12, 100% efficiency.</p></div>
+              <div class="kcard"><p class="keyb">Avg daily steps</p><p class="knum">9,604</p><p class="kdesc">Average from the latest 7 summaries.</p></div>
+              <div class="kcard"><p class="keyb">Latest resting HR</p><p class="knum">57 bpm</p><p class="kdesc">Recorded 2026-07-12 00:14.</p></div>
+              <div class="kcard"><p class="keyb">Latest HRV</p><p class="knum" style="color:#6f819e">—</p><p class="kdesc">No recent SDNN sample. See Heart.</p></div>
+            </div>
+            <!-- trend region -->
+            <div style="display:flex;gap:18px;flex:1;min-height:0">
+              <!-- left: mini bar chart -->
+              <div style="flex:1.7;background:#0e1c31;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:18px 20px;display:flex;flex-direction:column">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px">
+                  <div style="font:700 15px 'Inter';color:#eef3fa">Sleep — last 14 nights</div>
+                  <div style="font:500 11.5px 'Inter';color:#8397b4"><span style="color:#4f8dff">■</span> Nightly &nbsp; <span style="color:#f2600c">┅</span> 30-day avg</div>
+                </div>
+                <div style="position:relative;flex:1;display:flex;align-items:flex-end;gap:9px;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.07)">
+                  <div style="position:absolute;left:0;right:0;bottom:calc(22px + 42%);border-top:1.5px dashed #f2600c;opacity:.8"></div>
+                  <div style="flex:1;height:36%;background:#1e6bff;border-radius:3px 3px 0 0"></div>
+                  <div style="flex:1;height:34%;background:#1e6bff;border-radius:3px 3px 0 0"></div>
+                  <div style="flex:1;height:52%;background:#1e6bff;border-radius:3px 3px 0 0"></div>
+                  <div style="flex:1;height:26%;background:#1e6bff;border-radius:3px 3px 0 0"></div>
+                  <div style="flex:1;height:32%;background:#1e6bff;border-radius:3px 3px 0 0"></div>
+                  <div style="flex:1;height:74%;background:#1e6bff;border-radius:3px 3px 0 0"></div>
+                  <div style="flex:1;height:48%;background:#1e6bff;border-radius:3px 3px 0 0"></div>
+                  <div style="flex:1;height:56%;background:#1e6bff;border-radius:3px 3px 0 0"></div>
+                  <div style="flex:1;height:62%;background:#1e6bff;border-radius:3px 3px 0 0"></div>
+                  <div style="flex:1;height:38%;background:#1e6bff;border-radius:3px 3px 0 0"></div>
+                  <div style="flex:1;height:58%;background:#1e6bff;border-radius:3px 3px 0 0"></div>
+                  <div style="flex:1;height:30%;background:#1e6bff;border-radius:3px 3px 0 0"></div>
+                  <div style="flex:1;height:60%;background:#1e6bff;border-radius:3px 3px 0 0"></div>
+                  <div style="flex:1;height:6%;background:#2a4a7a;border-radius:3px 3px 0 0"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font:500 10.5px 'Inter';color:#6f819e;margin-top:8px"><span>Jun 29</span><span>Jul 06</span><span>Jul 12</span></div>
+              </div>
+              <!-- right: sparkline list -->
+              <div style="flex:1;background:#0e1c31;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:16px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:8px">
+                <div style="font:700 15px 'Inter';color:#eef3fa">This week</div>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="flex:1"><div style="font:600 11px 'Inter';color:#8397b4;margin-bottom:3px">Daily steps</div><div style="font:800 17px 'Inter';color:#eef3fa">9,604</div></div>
+                  <svg width="86" height="34" viewBox="0 0 86 34"><polyline points="2,26 14,20 26,24 38,12 50,18 62,8 74,14 84,6" fill="none" stroke="#1e6bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <div style="font:700 11px 'Inter';color:#34c884;min-width:38px;text-align:right">+6%</div>
+                </div>
+                <div style="height:1px;background:rgba(255,255,255,.06)"></div>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="flex:1"><div style="font:600 11px 'Inter';color:#8397b4;margin-bottom:3px">Resting HR</div><div style="font:800 17px 'Inter';color:#eef3fa">57 bpm</div></div>
+                  <svg width="86" height="34" viewBox="0 0 86 34"><polyline points="2,10 14,14 26,9 38,16 50,15 62,20 74,18 84,22" fill="none" stroke="#f2600c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <div style="font:700 11px 'Inter';color:#34c884;min-width:38px;text-align:right">−3</div>
+                </div>
+                <div style="height:1px;background:rgba(255,255,255,.06)"></div>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="flex:1"><div style="font:600 11px 'Inter';color:#8397b4;margin-bottom:3px">Sleep efficiency</div><div style="font:800 17px 'Inter';color:#eef3fa">52%</div></div>
+                  <svg width="86" height="34" viewBox="0 0 86 34"><polyline points="2,8 14,12 26,10 38,18 50,16 62,22 74,20 84,26" fill="none" stroke="#f2b23c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <div style="font:700 11px 'Inter';color:#f2b23c;min-width:38px;text-align:right">−8%</div>
+                </div>
+              </div>
+            </div>
+            <!-- import banner -->
+            <div style="background:#0d1a2e;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:9px;height:9px;border-radius:50%;background:#34c884;box-shadow:0 0 0 4px rgba(52,200,132,.15)"></div>
+                <div><div style="font:700 14px 'Inter';color:#eef3fa">Latest import: completed</div><div style="font:400 11.5px 'Inter';color:#7f90ab;margin-top:2px">Most recent import recorded 2026-07-17 23:47:26.</div></div>
+              </div>
+              <div style="display:flex;gap:22px">
+                <div style="text-align:right"><div style="font:800 16px 'Inter';color:#eef3fa">148,302</div><div style="font:500 10px 'Inter';letter-spacing:.06em;text-transform:uppercase;color:#6f819e">Records</div></div>
+                <div style="text-align:right"><div style="font:800 16px 'Inter';color:#eef3fa">30</div><div style="font:500 10px 'Inter';letter-spacing:.06em;text-transform:uppercase;color:#6f819e">Sleep nights</div></div>
+                <div style="text-align:right"><div style="font:800 16px 'Inter';color:#eef3fa">92</div><div style="font:500 10px 'Inter';letter-spacing:.06em;text-transform:uppercase;color:#6f819e">Daily rollups</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 1b ============ -->
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Insight-forward — a recovery ring hero + auto-generated highlight callouts with status colors. Airier, more editorial, turns raw numbers into "what does this mean."</div>
+      <div class="win">
+        <div style="height:30px;background:#05080f;display:flex;align-items:center;justify-content:center;font:400 12px 'Inter';color:#7f90ab">Apple Health Data Analyzer</div>
+        <div style="display:flex;height:740px">
+          <div style="width:210px;background:#080f1c;border-right:1px solid rgba(255,255,255,.05);padding:24px 18px;box-sizing:border-box">
+            <div style="font:700 10px 'Inter';letter-spacing:.11em;color:#5f80b8;margin-bottom:8px">APPLE HEALTH</div>
+            <div style="font:800 24px 'Inter';color:#f3f7fc;margin-bottom:9px;letter-spacing:-.01em">Analyzer</div>
+            <div style="font:400 11.5px/1.4 'Inter';color:#6f819e;margin-bottom:26px">Desktop analytics for Apple Health exports</div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:#0f2138;border:1px solid rgba(30,107,255,.35);border-left:3px solid #1e6bff;font:600 13.5px 'Inter';color:#eef3fa">Overview</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Sleep</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Activity</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Heart</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Trends</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Imports</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Settings</div>
+            </div>
+          </div>
+          <div style="flex:1;background:#0a1322;padding:22px 24px;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
+            <div style="background:#0d1a2e;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:20px 22px;display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <div style="font:600 10px 'Inter';letter-spacing:.09em;text-transform:uppercase;color:#5f80b8;margin-bottom:9px">Data through Jul 17</div>
+                <div style="font:800 26px 'Inter';color:#f3f7fc;margin-bottom:8px;letter-spacing:-.01em">Overview</div>
+                <div style="font:400 13px 'Inter';color:#8397b4">Your recovery snapshot and what changed since last week.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="background:#1e6bff;color:#fff;font:600 12.5px 'Inter';padding:11px 20px;border-radius:8px;text-align:center;white-space:nowrap">Import Apple Health Export</div>
+                <div style="background:transparent;border:1px solid rgba(255,255,255,.14);color:#c3d0e4;font:600 12.5px 'Inter';padding:10px 20px;border-radius:8px;text-align:center">Database Info</div>
+              </div>
+            </div>
+            <!-- hero: ring + insights -->
+            <div style="display:flex;gap:18px">
+              <div style="width:300px;background:#0e1c31;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+                <div style="position:relative;width:170px;height:170px">
+                  <svg width="170" height="170" viewBox="0 0 170 170">
+                    <circle cx="85" cy="85" r="72" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="14"/>
+                    <circle cx="85" cy="85" r="72" fill="none" stroke="#f2b23c" stroke-width="14" stroke-linecap="round" stroke-dasharray="452" stroke-dashoffset="271" transform="rotate(-90 85 85)"/>
+                  </svg>
+                  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                    <div style="font:800 44px 'Inter';color:#f3f7fc;line-height:1">40</div>
+                    <div style="font:600 11px 'Inter';letter-spacing:.08em;text-transform:uppercase;color:#f2b23c;margin-top:2px">Fair</div>
+                  </div>
+                </div>
+                <div style="font:700 15px 'Inter';color:#eef3fa;margin-top:18px">Recovery today</div>
+                <div style="font:400 12px/1.5 'Inter';color:#8397b4;margin-top:6px">Low sleep is pulling your score down, but resting HR and HRV are stable.</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:14px">
+                <div style="font:700 13px 'Inter';color:#8397b4;letter-spacing:.02em">Highlights</div>
+                <div style="background:#0e1c31;border:1px solid rgba(255,255,255,.06);border-left:3px solid #f2600c;border-radius:10px;padding:15px 18px;display:flex;gap:13px;align-items:flex-start">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#f2600c;margin-top:6px;flex:none"></div>
+                  <div><div style="font:700 14px 'Inter';color:#eef3fa;margin-bottom:3px">Sleep is 34% below your 30-day average</div><div style="font:400 12px/1.5 'Inter';color:#8397b4">Last night was 4h 54m avg this week vs 5h 57m over 30 days. Three short nights in a row.</div></div>
+                </div>
+                <div style="background:#0e1c31;border:1px solid rgba(255,255,255,.06);border-left:3px solid #34c884;border-radius:10px;padding:15px 18px;display:flex;gap:13px;align-items:flex-start">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#34c884;margin-top:6px;flex:none"></div>
+                  <div><div style="font:700 14px 'Inter';color:#eef3fa;margin-bottom:3px">Resting HR trending down — good sign</div><div style="font:400 12px/1.5 'Inter';color:#8397b4">57 bpm, down 3 from last week. Lower resting HR often tracks with better recovery.</div></div>
+                </div>
+                <div style="background:#0e1c31;border:1px solid rgba(255,255,255,.06);border-left:3px solid #1e6bff;border-radius:10px;padding:15px 18px;display:flex;gap:13px;align-items:flex-start">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#1e6bff;margin-top:6px;flex:none"></div>
+                  <div><div style="font:700 14px 'Inter';color:#eef3fa;margin-bottom:3px">On pace with your step goal</div><div style="font:400 12px/1.5 'Inter';color:#8397b4">9,604 avg daily steps this week, up 6%. You've cleared 8,000 on 5 of 7 days.</div></div>
+                </div>
+              </div>
+            </div>
+            <!-- compact KPI strip -->
+            <div class="kbar" style="flex:1;align-items:stretch">
+              <div class="kcard" style="display:flex;flex-direction:column;justify-content:center"><p class="keyb">Avg sleep / week</p><p class="knum">4h 54m</p></div>
+              <div class="kcard" style="display:flex;flex-direction:column;justify-content:center"><p class="keyb">Last night</p><p class="knum">0h 33m</p></div>
+              <div class="kcard" style="display:flex;flex-direction:column;justify-content:center"><p class="keyb">Avg steps</p><p class="knum">9,604</p></div>
+              <div class="kcard" style="display:flex;flex-direction:column;justify-content:center"><p class="keyb">Resting HR</p><p class="knum">57</p></div>
+              <div class="kcard" style="display:flex;flex-direction:column;justify-content:center"><p class="keyb">Consistency</p><p class="knum">21<span style="font-size:15px;color:#6f819e">/100</span></p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 1c ============ -->
+    <div class="dv-opt" id="1c">
+      <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Dense mission-control — KPI row plus a mosaic of mini-charts, a consistency gauge and a recent-imports table. Packs the most data per screen for at-a-glance scanning.</div>
+      <div class="win">
+        <div style="height:30px;background:#05080f;display:flex;align-items:center;justify-content:center;font:400 12px 'Inter';color:#7f90ab">Apple Health Data Analyzer</div>
+        <div style="display:flex;height:740px">
+          <div style="width:210px;background:#080f1c;border-right:1px solid rgba(255,255,255,.05);padding:24px 18px;box-sizing:border-box">
+            <div style="font:700 10px 'Inter';letter-spacing:.11em;color:#5f80b8;margin-bottom:8px">APPLE HEALTH</div>
+            <div style="font:800 24px 'Inter';color:#f3f7fc;margin-bottom:9px;letter-spacing:-.01em">Analyzer</div>
+            <div style="font:400 11.5px/1.4 'Inter';color:#6f819e;margin-bottom:26px">Desktop analytics for Apple Health exports</div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:#0f2138;border:1px solid rgba(30,107,255,.35);border-left:3px solid #1e6bff;font:600 13.5px 'Inter';color:#eef3fa">Overview</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Sleep</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Activity</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Heart</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Trends</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Imports</div>
+              <div style="padding:10px 12px;font:500 13.5px 'Inter';color:#8397b4">Settings</div>
+            </div>
+          </div>
+          <div style="flex:1;background:#0a1322;padding:20px 22px;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
+            <div style="background:#0d1a2e;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:17px 20px;display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font:600 10px 'Inter';letter-spacing:.09em;text-transform:uppercase;color:#5f80b8;margin-bottom:7px">Data through Jul 17</div>
+                <div style="font:800 23px 'Inter';color:#f3f7fc;letter-spacing:-.01em">Overview</div>
+              </div>
+              <div style="display:flex;gap:10px">
+                <div style="background:#1e6bff;color:#fff;font:600 12px 'Inter';padding:10px 18px;border-radius:8px;white-space:nowrap">Import Apple Health Export</div>
+                <div style="background:transparent;border:1px solid rgba(255,255,255,.14);color:#c3d0e4;font:600 12px 'Inter';padding:10px 18px;border-radius:8px">Database Info</div>
+              </div>
+            </div>
+            <div class="kbar" style="gap:12px">
+              <div class="kcard" style="padding:13px 15px"><p class="keyb">Avg sleep / week</p><p class="knum" style="font-size:23px">4h 54m</p></div>
+              <div class="kcard" style="padding:13px 15px"><p class="keyb">Last night</p><p class="knum" style="font-size:23px">0h 33m</p></div>
+              <div class="kcard" style="padding:13px 15px"><p class="keyb">Avg steps</p><p class="knum" style="font-size:23px">9,604</p></div>
+              <div class="kcard" style="padding:13px 15px"><p class="keyb">Resting HR</p><p class="knum" style="font-size:23px">57 bpm</p></div>
+              <div class="kcard" style="padding:13px 15px"><p class="keyb">HRV (SDNN)</p><p class="knum" style="font-size:23px;color:#6f819e">—</p></div>
+            </div>
+            <!-- mosaic -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;flex:1;min-height:0">
+              <!-- sleep bars -->
+              <div style="background:#0e1c31;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:15px 16px;display:flex;flex-direction:column">
+                <div style="font:700 13px 'Inter';color:#eef3fa;margin-bottom:12px">Sleep — 14 nights</div>
+                <div style="flex:1;display:flex;align-items:flex-end;gap:6px">
+                  <div style="flex:1;height:40%;background:#1e6bff;border-radius:2px 2px 0 0"></div><div style="flex:1;height:36%;background:#1e6bff;border-radius:2px 2px 0 0"></div><div style="flex:1;height:58%;background:#1e6bff;border-radius:2px 2px 0 0"></div><div style="flex:1;height:28%;background:#1e6bff;border-radius:2px 2px 0 0"></div><div style="flex:1;height:34%;background:#1e6bff;border-radius:2px 2px 0 0"></div><div style="flex:1;height:80%;background:#1e6bff;border-radius:2px 2px 0 0"></div><div style="flex:1;height:50%;background:#1e6bff;border-radius:2px 2px 0 0"></div><div style="flex:1;height:60%;background:#1e6bff;border-radius:2px 2px 0 0"></div><div style="flex:1;height:66%;background:#1e6bff;border-radius:2px 2px 0 0"></div><div style="flex:1;height:42%;background:#1e6bff;border-radius:2px 2px 0 0"></div><div style="flex:1;height:62%;background:#1e6bff;border-radius:2px 2px 0 0"></div><div style="flex:1;height:32%;background:#1e6bff;border-radius:2px 2px 0 0"></div><div style="flex:1;height:64%;background:#1e6bff;border-radius:2px 2px 0 0"></div><div style="flex:1;height:8%;background:#2a4a7a;border-radius:2px 2px 0 0"></div>
+                </div>
+              </div>
+              <!-- steps line -->
+              <div style="background:#0e1c31;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:15px 16px;display:flex;flex-direction:column">
+                <div style="font:700 13px 'Inter';color:#eef3fa;margin-bottom:12px">Daily steps — 14 days</div>
+                <svg viewBox="0 0 240 120" preserveAspectRatio="none" style="flex:1;width:100%"><polyline points="0,90 20,72 40,84 60,50 80,64 100,40 120,58 140,30 160,46 180,52 200,28 220,44 240,36" fill="none" stroke="#1e6bff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>
+              </div>
+              <!-- resting HR line -->
+              <div style="background:#0e1c31;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:15px 16px;display:flex;flex-direction:column">
+                <div style="font:700 13px 'Inter';color:#eef3fa;margin-bottom:12px">Resting HR — 14 days</div>
+                <svg viewBox="0 0 240 120" preserveAspectRatio="none" style="flex:1;width:100%"><polyline points="0,40 20,50 40,44 60,58 80,54 100,66 120,60 140,72 160,64 180,76 200,70 220,80 240,74" fill="none" stroke="#f2600c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>
+              </div>
+            </div>
+            <!-- bottom row: gauge + table -->
+            <div style="display:flex;gap:14px;height:150px">
+              <div style="width:210px;background:#0e1c31;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:15px 16px;display:flex;flex-direction:column;justify-content:space-between">
+                <div style="font:700 13px 'Inter';color:#eef3fa">Sleep consistency</div>
+                <div style="display:flex;align-items:baseline;gap:6px"><div style="font:800 34px 'Inter';color:#f2b23c">21</div><div style="font:600 13px 'Inter';color:#6f819e">/ 100</div></div>
+                <div style="height:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden"><div style="width:21%;height:100%;background:#f2b23c;border-radius:4px"></div></div>
+                <div style="font:400 11px 'Inter';color:#8397b4">Irregular bedtimes are hurting your schedule.</div>
+              </div>
+              <div style="flex:1;background:#0e1c31;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:15px 18px;display:flex;flex-direction:column">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px"><div style="font:700 13px 'Inter';color:#eef3fa">Recent imports</div><div style="font:500 11px 'Inter';color:#4f8dff">View all</div></div>
+                <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr .8fr;font:600 9.5px 'Inter';letter-spacing:.05em;text-transform:uppercase;color:#6f819e;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.07)"><div>Imported</div><div style="text-align:right">Records</div><div style="text-align:right">New nights</div><div style="text-align:right">Status</div></div>
+                <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr .8fr;font:500 12px 'Inter';color:#c3d0e4;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)"><div>Jul 17 23:47</div><div style="text-align:right;font-variant-numeric:tabular-nums">12,884</div><div style="text-align:right;font-variant-numeric:tabular-nums">5</div><div style="text-align:right;color:#34c884">Completed</div></div>
+                <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr .8fr;font:500 12px 'Inter';color:#c3d0e4;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)"><div>Jul 10 08:12</div><div style="text-align:right;font-variant-numeric:tabular-nums">9,240</div><div style="text-align:right;font-variant-numeric:tabular-nums">7</div><div style="text-align:right;color:#34c884">Completed</div></div>
+                <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr .8fr;font:500 12px 'Inter';color:#c3d0e4;padding:9px 0"><div>Jul 03 21:05</div><div style="text-align:right;font-variant-numeric:tabular-nums">0</div><div style="text-align:right;font-variant-numeric:tabular-nums">0</div><div style="text-align:right;color:#f2b23c">Duplicate</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "flesh out <a class="dv-oid" href="#1a">1a</a> with the record counts as full cards" · "make <a class="dv-oid" href="#1b">1b</a>'s ring a real readiness gauge with a legend" · "combine <a class="dv-oid" href="#1b">1b</a> highlights with <a class="dv-oid" href="#1c">1c</a> mosaic" · "new directions"</p>
+</section>
+
+</x-dc>
+</body>
+</html>
