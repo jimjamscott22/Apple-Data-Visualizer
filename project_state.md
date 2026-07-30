@@ -4,7 +4,7 @@
 - Name: `Apple Health Data Analyzer`
 - Repo root: `/home/jimjamscozz/Desktop/GitHub-Repos/Apple-Data-Visualizer`
 - Stack: Python 3, PySide6, pyqtgraph, MariaDB (via PyMySQL)
-- Current date of handoff: `2026-07-19`
+- Current date of handoff: `2026-07-29`
 
 ## Current Status
 - Phase 1 completed: application shell, entrypoint, package layout, theme, sidebar navigation.
@@ -32,8 +32,11 @@
     correlation + regression line for sleep-vs-next-day-HRV, sleep-vs-next-day-resting-HR,
     and steps-vs-same-night-sleep, plus weekday/weekend and higher-sleep/lower-sleep split
     comparisons, with a 30/90/365-day range filter.
-  - Activity, Imports/Data Manager, and Settings pages remain intentional placeholder
-    scaffolds in `MainWindow` (`app/ui/pages/base.py::PlaceholderPage`) — not started.
+  - Settings slice done (`app/ui/pages/settings_page.py` + `app/preferences.py`): persistent
+    Sleep/Trends defaults, 12/24-hour time display, remembered import folder and last-page
+    behavior, read-only connection/application details, and reset-to-default controls.
+  - Activity and Imports/Data Manager remain intentional placeholder scaffolds in
+    `MainWindow` (`app/ui/pages/base.py::PlaceholderPage`) — not started.
 - A real bug fix landed 2026-07-18 (`9346b58`): `_refresh_daily_summaries` was filtering with
   `DATE(start_at) = %s`, which can't use the `idx_records_metric_start` index (the function
   call on the column defeats it), causing a full scan of `records` per impacted metric/day on
@@ -71,7 +74,8 @@
   - `main.py`
   - `app/main.py`
 - Config/theme:
-  - `app/config.py` (just `APP_NAME` now — SQLite path plumbing was removed in the migration)
+  - `app/config.py` (`APP_NAME` / installed package version)
+  - `app/preferences.py` — `QSettings`-backed local UI preferences and session state
   - `app/theme.py`
 - Database:
   - `app/database/config.py` — `DatabaseSettings` from env vars / `.env`
@@ -94,6 +98,7 @@
   - `app/ui/import_worker.py` — background `QThread` import wrapper
   - `app/ui/pages/base.py` — `MetricCard`, `EmptyStateCard`, `PlaceholderPage`, `OverviewPage`
   - `app/ui/pages/sleep_page.py`, `app/ui/pages/hrv_page.py`, `app/ui/pages/trends_page.py`
+  - `app/ui/pages/settings_page.py`
   - `app/charts/__init__.py` — shared pyqtgraph styling and axis helpers
     (`ClockAxisItem`, `IndexDateAxisItem`)
 - Planning docs:
@@ -137,9 +142,11 @@
   - walking/running distance normalized to `km` for `m`, `mi`, and `ft`
 
 ## Known Gaps
-- Activity, Imports/Data Manager, and Settings pages are still placeholder scaffolds
-  (`PlaceholderPage` in the nav) — no steps/movement analytics, no import-history UI, no
-  settings UI yet, per Phase 6 of `docs/implementation-plan.md`.
+- Activity and Imports/Data Manager are still placeholder scaffolds (`PlaceholderPage` in the
+  nav) — there is no steps/movement analytics or import-history UI yet, per Phase 6 of
+  `docs/implementation-plan.md`.
+- Dark is still the only implemented theme. The Settings page reports that fact instead of
+  offering non-functional theme controls.
 - Sleep-session derivation is still a rule-based heuristic (see
   `SleepAnalysisService._calculate_consistency_score`): night grouping anchored at
   `start_at - 12h`, bedtime/wake/efficiency from merged intervals, consistency scored via
@@ -165,8 +172,6 @@
   - Activity page: daily steps chart, weekly averages, most-active-day summaries (data is
     already imported and summarized in `daily_summaries` for `step_count`; no new ingestion
     needed, just a page).
-  - Settings page: database location display already partly covered by the "Database Info"
-    dialog; default date-range and theme scaffolding still open.
 - Alongside UI work, close the test-coverage gap for `HealthDataParser`, `SleepAnalysisService`,
   `HRVAnalysisService`, and `ImportService` — these are pure-logic services with no Qt/DB
   dependency (aside from `ImportService`'s `DatabaseManager` calls, which can be faked) and are

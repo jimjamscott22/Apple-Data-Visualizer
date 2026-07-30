@@ -28,10 +28,11 @@ from app.charts import (
     style_axes,
 )
 from app.models.sleep import SleepSummaryData
+from app.preferences import SLEEP_RANGE_OPTIONS
 from app.ui.pages.base import EmptyStateCard, MetricCard, right_aligned
 
 
-RANGE_OPTIONS = [7, 30, 90]
+RANGE_OPTIONS = SLEEP_RANGE_OPTIONS
 
 
 class SleepPage(QWidget):
@@ -40,12 +41,15 @@ class SleepPage(QWidget):
     def __init__(
         self,
         on_range_changed: Callable[[int], None] | None = None,
+        initial_range: int = 30,
+        clock_format: str = "24-hour",
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
         self.setObjectName("PageRoot")
         self._on_range_changed = on_range_changed
-        self._current_range = 30
+        self._current_range = initial_range if initial_range in RANGE_OPTIONS else 30
+        self._use_24_hour = clock_format == "24-hour"
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -70,13 +74,17 @@ class SleepPage(QWidget):
         disable_chart_interaction(self.duration_plot)
         layout.addWidget(self.duration_chart_frame)
 
+        self.clock_axis = ClockAxisItem(
+            orientation="left",
+            use_24_hour=self._use_24_hour,
+        )
         self.timing_chart_frame = self._build_chart_frame(
             "Bedtime & wake-time trend",
             legend=(
                 f'<span style="color:{SERIES_PRIMARY};">●</span> Bedtime &nbsp;|&nbsp; '
                 f'<span style="color:{SERIES_ACCENT};">●</span> Wake time'
             ),
-            left_axis_item=ClockAxisItem(orientation="left"),
+            left_axis_item=self.clock_axis,
             bottom_axis_item=IndexDateAxisItem(orientation="bottom"),
         )
         self.timing_plot: pg.PlotWidget = self.timing_chart_frame.findChild(pg.PlotWidget)
@@ -179,6 +187,18 @@ class SleepPage(QWidget):
         if self._on_range_changed is not None:
             self._on_range_changed(days)
 
+    def set_range(self, days: int) -> None:
+        if days not in RANGE_OPTIONS:
+            raise ValueError(f"Unsupported sleep range: {days}")
+        self._current_range = days
+        button = self._range_group.button(days)
+        if button is not None:
+            button.setChecked(True)
+
+    def set_clock_format(self, clock_format: str) -> None:
+        self._use_24_hour = clock_format == "24-hour"
+        self.clock_axis.set_clock_format(use_24_hour=self._use_24_hour)
+
     def current_range(self) -> int:
         return self._current_range
 
@@ -224,8 +244,16 @@ class SleepPage(QWidget):
         )
         cons_detail = "Higher = more regular schedule"
 
-        bedtime_str = _format_clock_hours(summary.avg_bedtime_hours, offset_from_noon=True)
-        wake_str = _format_clock_hours(summary.avg_wake_hours, offset_from_noon=False)
+        bedtime_str = _format_clock_hours(
+            summary.avg_bedtime_hours,
+            offset_from_noon=True,
+            use_24_hour=self._use_24_hour,
+        )
+        wake_str = _format_clock_hours(
+            summary.avg_wake_hours,
+            offset_from_noon=False,
+            use_24_hour=self._use_24_hour,
+        )
         schedule_value = f"{bedtime_str} → {wake_str}"
         schedule_detail = "Average bedtime → wake time"
 
@@ -288,8 +316,8 @@ class SleepPage(QWidget):
     def _render_table(self, summary: SleepSummaryData) -> None:
         self.table.setRowCount(len(summary.nights))
         for row_idx, night in enumerate(summary.nights):
-            bedtime = _format_clock_time(night.bedtime_at)
-            wake = _format_clock_time(night.wake_at)
+            bedtime = _format_clock_time(night.bedtime_at, use_24_hour=self._use_24_hour)
+            wake = _format_clock_time(night.wake_at, use_24_hour=self._use_24_hour)
             efficiency = (
                 f"{night.sleep_efficiency:.0f}%"
                 if night.sleep_efficiency is not None
@@ -343,7 +371,12 @@ def _hours_since_prior_noon(iso_value: str | None) -> float | None:
     return raw - 12 if raw >= 12 else raw + 12
 
 
-def _format_clock_hours(value: float | None, *, offset_from_noon: bool) -> str:
+def _format_clock_hours(
+    value: float | None,
+    *,
+    offset_from_noon: bool,
+    use_24_hour: bool,
+) -> str:
     if value is None:
         return "--"
     if offset_from_noon:
@@ -355,10 +388,17 @@ def _format_clock_hours(value: float | None, *, offset_from_noon: bool) -> str:
     if minutes == 60:
         hours = (hours + 1) % 24
         minutes = 0
-    return f"{hours:02d}:{minutes:02d}"
+    if use_24_hour:
+        return f"{hours:02d}:{minutes:02d}"
+    suffix = "AM" if hours < 12 else "PM"
+    return f"{hours % 12 or 12}:{minutes:02d} {suffix}"
 
 
-def _format_clock_time(iso_value: str | None) -> str:
+def _format_clock_time(iso_value: str | None, *, use_24_hour: bool) -> str:
     if not iso_value:
         return "--"
-    return datetime.fromisoformat(iso_value).strftime("%H:%M")
+    parsed = datetime.fromisoformat(iso_value)
+    if use_24_hour:
+        return parsed.strftime("%H:%M")
+    suffix = "AM" if parsed.hour < 12 else "PM"
+    return f"{parsed.hour % 12 or 12}:{parsed.minute:02d} {suffix}"

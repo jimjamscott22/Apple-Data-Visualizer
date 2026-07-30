@@ -44,6 +44,15 @@ class ClockAxisItem(pg.AxisItem):
     That keeps an overnight span monotonic and un-wrapped on a single axis.
     """
 
+    def __init__(self, *args, use_24_hour: bool = True, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._use_24_hour = use_24_hour
+
+    def set_clock_format(self, *, use_24_hour: bool) -> None:
+        self._use_24_hour = use_24_hour
+        self.picture = None
+        self.update()
+
     def tickStrings(self, values, scale, spacing):
         strings = []
         for value in values:
@@ -53,7 +62,11 @@ class ClockAxisItem(pg.AxisItem):
             if minutes == 60:
                 hours = (hours + 1) % 24
                 minutes = 0
-            strings.append(f"{hours:02d}:{minutes:02d}")
+            if self._use_24_hour:
+                strings.append(f"{hours:02d}:{minutes:02d}")
+            else:
+                suffix = "AM" if hours < 12 else "PM"
+                strings.append(f"{hours % 12 or 12}:{minutes:02d} {suffix}")
         return strings
 
 
