@@ -212,3 +212,6 @@ apple_health_export/
 
 # Codex local state
 .codex/
+
+# Local linked worktrees
+.worktrees/
