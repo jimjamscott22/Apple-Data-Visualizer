@@ -15,6 +15,17 @@ This is a PySide6 desktop app that requires a running MariaDB server (a hard dep
 
 ## Implementation Summary
 
+### 2026-08-02
+- Corrected stale project-state documentation: Activity is a completed DB-backed analytics
+  page, while Imports/Data Manager is the only remaining navigation placeholder.
+- Approved a read-only boundary for Imports/Data Manager and added its authoritative design at
+  `docs/superpowers/specs/2026-08-02-imports-data-manager-design.md`: database status, aggregate
+  cards, metric inventory, latest 50 import attempts, and selection-driven warning/failure
+  details; no delete, retry, export, credential editing, or database maintenance controls.
+- Added the task-by-task implementation plan at
+  `docs/superpowers/plans/2026-08-02-imports-data-manager.md` and synchronized the general spec,
+  implementation plan, project state, and planning implementation summary.
+
 ### 2026-07-27
 - Implemented the **Activity** visualization page, replacing the `PlaceholderPage` scaffold that previously sat at nav index 2 (between Sleep and Heart).
 - Added `app/models/activity.py` (`ActivityDayRecord`, `ActivitySummaryData`) and `app/services/activity_analysis_service.py` (`ActivityAnalysisService`) following the existing HRV/Trends service pattern — pure logic over `daily_summaries` rows, no DB access in the service. It merges `step_count` and `walking_running_distance` daily totals by date and computes total/avg steps, best day, total/avg distance, and "active days" (days reaching a 10,000-step goal, `STEP_GOAL`).
@@ -39,7 +50,7 @@ This is a PySide6 desktop app that requires a running MariaDB server (a hard dep
   read-only and continues to come from environment variables or `.env`.
 - Added focused preference, Settings UI/privacy, and clock-format tests in
   `tests/test_preferences.py`; updated `project_state.md` to record the completed Settings
-  slice and remaining Activity/Imports placeholders.
+  slice and the Activity/Imports placeholders that remained at that point.
 
 ### 2026-07-09
 - Fixed MD022 markdownlint violations in `docs/implementation-plan.md` by adding blank lines below all headings that were immediately followed by content.

@@ -2,9 +2,9 @@
 
 ## Project
 - Name: `Apple Health Data Analyzer`
-- Repo root: `/home/jimjamscozz/Desktop/GitHub-Repos/Apple-Data-Visualizer`
+- Repo root: `C:\Users\jimja\github_repos\Python\Apple-Data-Visualizer`
 - Stack: Python 3, PySide6, pyqtgraph, MariaDB (via PyMySQL)
-- Current date of handoff: `2026-07-29`
+- Current date of handoff: `2026-08-02`
 
 ## Current Status
 - Phase 1 completed: application shell, entrypoint, package layout, theme, sidebar navigation.
@@ -35,8 +35,12 @@
   - Settings slice done (`app/ui/pages/settings_page.py` + `app/preferences.py`): persistent
     Sleep/Trends defaults, 12/24-hour time display, remembered import folder and last-page
     behavior, read-only connection/application details, and reset-to-default controls.
-  - Activity and Imports/Data Manager remain intentional placeholder scaffolds in
-    `MainWindow` (`app/ui/pages/base.py::PlaceholderPage`) — not started.
+  - Activity slice done (`app/ui/pages/activity_page.py` + `ActivityAnalysisService`):
+    7/30/90-day range filter, daily steps and walking/running-distance charts, average and
+    total summaries, best-day and 10,000-step goal summaries, and a per-day history table.
+  - Imports/Data Manager remains the only intentional placeholder scaffold in `MainWindow`
+    (`app/ui/pages/base.py::PlaceholderPage`) — implementation is not started, but its
+    read-only design and task-by-task plan were approved on 2026-08-02.
 - A real bug fix landed 2026-07-18 (`9346b58`): `_refresh_daily_summaries` was filtering with
   `DATE(start_at) = %s`, which can't use the `idx_records_metric_start` index (the function
   call on the column defeats it), causing a full scan of `records` per impacted metric/day on
@@ -66,8 +70,9 @@
   as warnings (capped detail list, aggregated counts), not treated as import failures.
 - Successful imports write to `import_history`, `records`, `daily_summaries` (non-sleep
   metrics only), and `sleep_sessions` (impacted nights only, delete + reinsert).
-- Overview, Sleep, HRV (Heart), and Trends pages all refresh with real DB-backed data after
-  import completes, without restarting the app.
+- Overview, Sleep, Activity, HRV (Heart), and Trends pages all refresh with real DB-backed
+  data after import completes, without restarting the app. Settings is a functional
+  preference and application-information page rather than an analytics view.
 
 ## Important Files
 - Entrypoints:
@@ -87,23 +92,27 @@
 - Services:
   - `app/services/import_service.py`
   - `app/services/dashboard_controller.py`
+  - `app/services/activity_analysis_service.py`
   - `app/services/sleep_analysis_service.py`
   - `app/services/hrv_analysis_service.py`
   - `app/services/trends_analysis_service.py`
 - Models:
-  - `app/models/imports.py`, `app/models/dashboard.py`, `app/models/sleep.py`,
-    `app/models/hrv.py`, `app/models/trends.py`
+  - `app/models/imports.py`, `app/models/dashboard.py`, `app/models/activity.py`,
+    `app/models/sleep.py`, `app/models/hrv.py`, `app/models/trends.py`
 - UI:
   - `app/ui/main_window.py`
   - `app/ui/import_worker.py` — background `QThread` import wrapper
   - `app/ui/pages/base.py` — `MetricCard`, `EmptyStateCard`, `PlaceholderPage`, `OverviewPage`
-  - `app/ui/pages/sleep_page.py`, `app/ui/pages/hrv_page.py`, `app/ui/pages/trends_page.py`
+  - `app/ui/pages/activity_page.py`, `app/ui/pages/sleep_page.py`,
+    `app/ui/pages/hrv_page.py`, `app/ui/pages/trends_page.py`
   - `app/ui/pages/settings_page.py`
   - `app/charts/__init__.py` — shared pyqtgraph styling and axis helpers
     (`ClockAxisItem`, `IndexDateAxisItem`)
 - Planning docs:
   - `docs/spec-sheet.md`, `docs/implementation-plan.md`
   - `docs/mariadb-migration-spec.md`, `docs/mariadb-migration-plan.md`
+  - `docs/superpowers/specs/2026-08-02-imports-data-manager-design.md`
+  - `docs/superpowers/plans/2026-08-02-imports-data-manager.md`
 
 ## Database Notes
 - The app connects to MariaDB using `DatabaseSettings` from `app/database/config.py` (env vars
@@ -142,9 +151,9 @@
   - walking/running distance normalized to `km` for `m`, `mi`, and `ft`
 
 ## Known Gaps
-- Activity and Imports/Data Manager are still placeholder scaffolds (`PlaceholderPage` in the
-  nav) — there is no steps/movement analytics or import-history UI yet, per Phase 6 of
-  `docs/implementation-plan.md`.
+- Imports/Data Manager is still a placeholder scaffold (`PlaceholderPage` in the nav). There
+  is no import-history, record-inventory, database-health, or stored-warning UI yet, per
+  Phase 6 of `docs/implementation-plan.md`.
 - Dark is still the only implemented theme. The Settings page reports that fact instead of
   offering non-functional theme controls.
 - Sleep-session derivation is still a rule-based heuristic (see
@@ -167,19 +176,17 @@
 
 ## Next Recommended Phase
 - Continue Phase 6 (Expansion Pass) per `docs/implementation-plan.md`:
-  - Imports / Data Manager page: import history table, record counts by type, database status
-    panel, and a way to surface stored parser warnings — this is the most-referenced gap above.
-  - Activity page: daily steps chart, weekly averages, most-active-day summaries (data is
-    already imported and summarized in `daily_summaries` for `step_count`; no new ingestion
-    needed, just a page).
+  - Implement the approved read-only Imports / Data Manager plan: database status, aggregate
+    cards, metric inventory, latest 50 import attempts, and selection-driven warning/failure
+    details. Do not add delete, retry, export, or database-edit controls in this slice.
 - Alongside UI work, close the test-coverage gap for `HealthDataParser`, `SleepAnalysisService`,
   `HRVAnalysisService`, and `ImportService` — these are pure-logic services with no Qt/DB
   dependency (aside from `ImportService`'s `DatabaseManager` calls, which can be faked) and are
   currently the least-tested layer relative to their complexity.
 
 ## Suggested Resume Checklist
-1. Read `docs/spec-sheet.md` and `docs/implementation-plan.md` (Phase 6 section) for the
-   Imports/Activity/Settings page contracts.
+1. Read `docs/superpowers/specs/2026-08-02-imports-data-manager-design.md` and execute
+   `docs/superpowers/plans/2026-08-02-imports-data-manager.md` task by task.
 2. Review:
    - `app/services/import_service.py` and `app/database/manager.py` for what's already
      available to surface on an Imports page (`list_recent_imports`, `import_history.notes`).
@@ -191,11 +198,12 @@
    before extending them further.
 
 ## Verification Performed
-- This update is a documentation-only refresh of `project_state.md` based on a source-code
-  review (no code changes, so no build/test run was needed for it).
-- Last known real verification, from the MariaDB migration (per `AGENTS.md`): `uv run python -m
-  compileall app main.py` and `uv run pytest -q` both passed (27 passed / 13 skipped without a
-  live MariaDB server). Re-run these before trusting that state still holds after further changes.
+- The 2026-08-02 update is documentation-only and was based on a current source-code, test,
+  schema, and recent-commit review. `git diff --check` passed; application tests were not rerun
+  because no runtime code changed.
+- The latest recorded full live-suite result in `AGENTS.md` is 47 passed for the Activity slice;
+  focused Settings tests were added afterward. Re-run the plan's focused and full verification
+  commands before treating the future Imports/Data Manager implementation as complete.
 
 ## Run Instructions
 ```bash

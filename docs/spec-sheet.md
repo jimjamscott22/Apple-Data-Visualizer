@@ -297,6 +297,40 @@ Required initial content:
 - comparison of HRV after higher-sleep nights versus lower-sleep nights when enough data exists
 - latest HRV, average HRV, latest resting heart rate, and baseline deltas
 
+### Imports / Data Manager Page Contract
+
+The Imports section is a read-only operational dashboard for understanding the configured
+MariaDB database and the Apple Health import pipeline. It does not administer or delete data.
+
+Expected inputs:
+
+- database host, port, database name, user, and connected state (never the password)
+- aggregate import and stored-record counts
+- record inventory grouped by normalized metric name
+- the 50 most recent import attempts and their stored notes
+
+Behavior:
+
+- show database status, completed imports, stored records, parser warnings, and duplicates
+- show metric-level record counts with first/last recorded dates and units
+- show completed, duplicate, failed, and in-progress import attempts in a read-only table
+- show structured warnings, duplicate context, or failure text for the selected attempt
+- tolerate malformed legacy notes without breaking the page
+- refresh after import completion and on explicit request
+
+Required initial content:
+
+- database status panel
+- four import/storage summary cards
+- record-inventory table
+- recent import-history table
+- selection-driven import detail panel
+- independent empty states for inventory and history
+
+Deletion, retry, export, record browsing, credential editing, and database maintenance are out
+of scope. The authoritative detailed contract is
+`docs/superpowers/specs/2026-08-02-imports-data-manager-design.md`.
+
 ## Non-Functional Requirements
 - Maintainable, educational code with clean naming
 - Object-oriented structure without unnecessary abstraction
