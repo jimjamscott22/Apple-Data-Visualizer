@@ -603,6 +603,7 @@ class DatabaseManager:
                 return cursor.fetchall()
 
     def list_recent_imports(self, limit: int = 50) -> list[dict]:
+        effective_limit = min(limit, 50)
         with self.connect() as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
@@ -613,7 +614,7 @@ class DatabaseManager:
                     ORDER BY imported_at DESC, id DESC
                     LIMIT %s
                     """,
-                    (limit,),
+                    (effective_limit,),
                 )
                 return cursor.fetchall()
 

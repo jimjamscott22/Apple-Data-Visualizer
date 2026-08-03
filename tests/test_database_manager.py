@@ -227,6 +227,18 @@ class TestImportsDashboardReads:
         assert recent[0]["duplicate_detected"] == 1
         assert db_manager.list_recent_imports(limit=2) == recent[:2]
 
+        for index in range(49):
+            db_manager.log_duplicate_import_attempt(
+                file_path=f"/tmp/oversized-{index}.xml",
+                file_name=f"oversized-{index}.xml",
+                file_size=100,
+                file_fingerprint="dashboard-fingerprint-a",
+                duplicate_of_id=older_import_id,
+            )
+
+        oversized_history = db_manager.list_recent_imports(limit=51)
+        assert len(oversized_history) == 50
+
 
 class TestBeginAppendCompleteImportTransaction:
     def test_successful_import_commits_records_and_status(self, db_manager):
