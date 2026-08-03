@@ -312,7 +312,7 @@ def _section_card(title: str, description: str) -> QFrame:
 def _configure_table(table: QTableWidget, *, selectable: bool) -> None:
     table.verticalHeader().setVisible(False)
     table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-    table.setFocusPolicy(Qt.StrongFocus if selectable else Qt.NoFocus)
+    table.setFocusPolicy(Qt.StrongFocus)
     table.setAlternatingRowColors(True)
     if selectable:
         table.setSelectionMode(QAbstractItemView.SingleSelection)

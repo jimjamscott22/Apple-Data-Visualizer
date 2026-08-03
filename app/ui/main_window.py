@@ -30,7 +30,7 @@ from app.services.dashboard_controller import DashboardController
 from app.services.import_service import ImportService
 from app.ui.import_worker import run_import_in_background
 from app.ui.pages.activity_page import ActivityPage
-from app.ui.pages.base import OverviewPage, PlaceholderPage
+from app.ui.pages.base import OverviewPage
 from app.ui.pages.hrv_page import HRVPage
 from app.ui.pages.imports_page import ImportsPage
 from app.ui.pages.sleep_page import SleepPage

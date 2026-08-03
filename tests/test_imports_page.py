@@ -129,6 +129,7 @@ def test_populated_page_renders_statistics_tables_selection_and_safe_details():
     assert "12,345" in rendered_text
     assert "2" in rendered_text
     assert page.inventory_table.rowCount() == 1
+    assert page.inventory_table.focusPolicy() == Qt.StrongFocus
     assert page.history_table.rowCount() == 4
     assert page.history_table.item(0, 0).data(Qt.UserRole) == 30
     assert page._selected_import_id() == 30
@@ -178,6 +179,17 @@ def test_render_preserves_selected_import_and_refresh_signal_emits():
 
     page.render(_summary())
     assert page._selected_import_id() == 29
+
+    summary = _summary()
+    page.render(
+        ImportsSummaryData(
+            summary.database_status,
+            summary.statistics,
+            summary.inventory,
+            history=(summary.history[0], summary.history[2]),
+        )
+    )
+    assert page._selected_import_id() == 30
 
     emitted: list[bool] = []
     page.refresh_requested.connect(lambda: emitted.append(True))
