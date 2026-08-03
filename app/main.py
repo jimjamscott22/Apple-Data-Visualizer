@@ -13,6 +13,7 @@ from app.services.activity_analysis_service import ActivityAnalysisService
 from app.preferences import PreferenceStore
 from app.services.dashboard_controller import DashboardController
 from app.services.hrv_analysis_service import HRVAnalysisService
+from app.services.import_history_service import ImportHistoryService
 from app.services.import_service import ImportService
 from app.services.sleep_analysis_service import SleepAnalysisService
 from app.services.trends_analysis_service import TrendsAnalysisService
@@ -48,11 +49,13 @@ def main() -> int:
     hrv_analysis_service = HRVAnalysisService()
     trends_analysis_service = TrendsAnalysisService()
     activity_analysis_service = ActivityAnalysisService()
+    import_history_service = ImportHistoryService()
     dashboard_controller = DashboardController(
         database_manager,
         hrv_analysis_service,
         trends_analysis_service,
         activity_analysis_service,
+        import_history_service,
     )
     import_service = ImportService(
         database_manager=database_manager,
