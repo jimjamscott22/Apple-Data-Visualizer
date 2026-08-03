@@ -20,7 +20,7 @@ QLabel {
 }
 
 QWidget#HeaderCard, QFrame#MetricCard, QFrame#EmptyStateCard, QFrame#PlaceholderCard,
-QFrame#SettingsCard {
+QFrame#SettingsCard, QFrame#ImportDetailPanel {
     background-color: #0f1b31;
     border: 1px solid #1d2942;
     border-radius: 18px;
@@ -155,6 +155,30 @@ QLabel#ConnectionStatus {
 
 QLabel#SettingsStatus {
     color: #65d6a8;
+}
+
+QLabel#ImportStatusCompleted {
+    color: #65d6a8;
+    font-weight: 700;
+}
+
+QLabel#ImportStatusDuplicate {
+    color: #f0c674;
+    font-weight: 700;
+}
+
+QLabel#ImportStatusFailed {
+    color: #ff7d8c;
+    font-weight: 700;
+}
+
+QLabel#ImportStatusInProgress, QLabel#ImportStatusUnknown {
+    color: #8da2c3;
+    font-weight: 700;
+}
+
+QLabel#ImportDetailText {
+    color: #cfe0ff;
 }
 
 QListWidget {
