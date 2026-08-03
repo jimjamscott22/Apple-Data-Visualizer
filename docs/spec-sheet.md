@@ -35,7 +35,8 @@ The MVP is the first build that should feel meaningfully usable. It does not nee
 - Import history and duplicate-import prevention
 - Overview dashboard page
 - Strong Sleep page with nightly analysis and filters
-- Activity, Heart, Trends, Imports, and Settings sections scaffolded into the application shell
+- Activity, Heart, Trends, Imports / Data Manager, and Settings sections backed by focused
+  dashboards or preferences
 - Demo or fallback data support for early UI wiring and polished empty states
 
 ### Deferred Beyond MVP
@@ -109,15 +110,16 @@ The sleep page must include:
 - nightly sleep sessions table
 - date-range filters for 7, 30, and 90 days plus a custom range
 
-### Scaffolded Follow-On Areas
-These pages should exist in navigation even if some widgets are placeholders in the first implementation pass:
+### Expansion Areas
+These navigation pages have focused implementations and remain the natural extension points for
+future analytics work:
 - Activity
 - Heart
 - Trends
-- Imports / Data Manager
+- Imports / Data Manager (read-only import observability)
 - Settings
 
-Their initial role is to validate application structure and preserve expansion room without blocking MVP delivery.
+They preserve expansion room without compromising the usable core experience.
 
 ## UX and Visual Contract
 - Dark-mode-first visual direction inspired by modern health apps
@@ -317,6 +319,7 @@ Behavior:
 - show structured warnings, duplicate context, or failure text for the selected attempt
 - tolerate malformed legacy notes without breaking the page
 - refresh after import completion and on explicit request
+- preserve the selected import by ID across refreshes when it remains in the latest 50 results
 
 Required initial content:
 
@@ -330,6 +333,8 @@ Required initial content:
 Deletion, retry, export, record browsing, credential editing, and database maintenance are out
 of scope. The authoritative detailed contract is
 `docs/superpowers/specs/2026-08-02-imports-data-manager-design.md`.
+Implementation details and verification are recorded in
+`docs/implementation-summary-2026-08-02-imports-data-manager.md`.
 
 ## Non-Functional Requirements
 - Maintainable, educational code with clean naming

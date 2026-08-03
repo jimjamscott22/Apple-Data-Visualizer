@@ -38,9 +38,11 @@
   - Activity slice done (`app/ui/pages/activity_page.py` + `ActivityAnalysisService`):
     7/30/90-day range filter, daily steps and walking/running-distance charts, average and
     total summaries, best-day and 10,000-step goal summaries, and a per-day history table.
-  - Imports/Data Manager remains the only intentional placeholder scaffold in `MainWindow`
-    (`app/ui/pages/base.py::PlaceholderPage`) — implementation is not started, but its
-    read-only design and task-by-task plan were approved on 2026-08-02.
+  - Imports/Data Manager is implemented as the read-only `ImportsPage`
+    (`app/ui/pages/imports_page.py`). It presents database status, four aggregate cards, a
+    metric inventory, the latest 50 import attempts, and an ID-preserving detail panel for
+    warnings, duplicate context, and failures. It refreshes after every import outcome and on
+    request without exposing passwords or fingerprints or providing data-management actions.
 - A real bug fix landed 2026-07-18 (`9346b58`): `_refresh_daily_summaries` was filtering with
   `DATE(start_at) = %s`, which can't use the `idx_records_metric_start` index (the function
   call on the column defeats it), causing a full scan of `records` per impacted metric/day on
@@ -70,8 +72,8 @@
   as warnings (capped detail list, aggregated counts), not treated as import failures.
 - Successful imports write to `import_history`, `records`, `daily_summaries` (non-sleep
   metrics only), and `sleep_sessions` (impacted nights only, delete + reinsert).
-- Overview, Sleep, Activity, HRV (Heart), and Trends pages all refresh with real DB-backed
-  data after import completes, without restarting the app. Settings is a functional
+- Overview, Sleep, Activity, HRV (Heart), Trends, and Imports/Data Manager refresh with real
+  DB-backed data after import completes, without restarting the app. Settings is a functional
   preference and application-information page rather than an analytics view.
 
 ## Important Files
@@ -91,6 +93,7 @@
   - `app/parser/health_data_parser.py`
 - Services:
   - `app/services/import_service.py`
+  - `app/services/import_history_service.py` — pure imports-dashboard read-model conversion
   - `app/services/dashboard_controller.py`
   - `app/services/activity_analysis_service.py`
   - `app/services/sleep_analysis_service.py`
@@ -105,6 +108,7 @@
   - `app/ui/pages/base.py` — `MetricCard`, `EmptyStateCard`, `PlaceholderPage`, `OverviewPage`
   - `app/ui/pages/activity_page.py`, `app/ui/pages/sleep_page.py`,
     `app/ui/pages/hrv_page.py`, `app/ui/pages/trends_page.py`
+  - `app/ui/pages/imports_page.py` — read-only import history master-detail dashboard
   - `app/ui/pages/settings_page.py`
   - `app/charts/__init__.py` — shared pyqtgraph styling and axis helpers
     (`ClockAxisItem`, `IndexDateAxisItem`)
@@ -113,6 +117,7 @@
   - `docs/mariadb-migration-spec.md`, `docs/mariadb-migration-plan.md`
   - `docs/superpowers/specs/2026-08-02-imports-data-manager-design.md`
   - `docs/superpowers/plans/2026-08-02-imports-data-manager.md`
+  - `docs/implementation-summary-2026-08-02-imports-data-manager.md`
 
 ## Database Notes
 - The app connects to MariaDB using `DatabaseSettings` from `app/database/config.py` (env vars
@@ -151,9 +156,6 @@
   - walking/running distance normalized to `km` for `m`, `mi`, and `ft`
 
 ## Known Gaps
-- Imports/Data Manager is still a placeholder scaffold (`PlaceholderPage` in the nav). There
-  is no import-history, record-inventory, database-health, or stored-warning UI yet, per
-  Phase 6 of `docs/implementation-plan.md`.
 - Dark is still the only implemented theme. The Settings page reports that fact instead of
   offering non-functional theme controls.
 - Sleep-session derivation is still a rule-based heuristic (see
@@ -161,49 +163,38 @@
   `start_at - 12h`, bedtime/wake/efficiency from merged intervals, consistency scored via
   fixed penalty weights against fixed targets (22:30 bedtime, 07:00 wake, 8h duration, 85%
   efficiency) rather than a personal trend-based baseline.
-- Parser warnings are stored in `import_history.notes` (JSON), but there is still no UI to
-  inspect import history or those warnings — only the post-import summary dialog.
 - Automated test coverage is real but partial: `tests/test_database_config.py` is a pure unit
   test; `tests/test_database_manager.py` and `tests/test_database_schema.py` are live-MariaDB
   round-trip tests that self-skip when no server is reachable
   (`APPLE_DV_TEST_DB_HOST/PORT/USER/PASSWORD`, default `127.0.0.1:3306`/`root`); and
-  `tests/test_trends_analysis_service.py` unit-tests `TrendsAnalysisService`. There are no
-  tests yet for `HealthDataParser`, `SleepAnalysisService`, `HRVAnalysisService`,
-  `ImportService`, or `DashboardController`.
+  `tests/test_import_history_service.py`, `tests/test_imports_page.py`,
+  `tests/test_dashboard_controller.py`, and `tests/test_trends_analysis_service.py` cover their
+  respective focused paths. There are no tests yet for `HealthDataParser`,
+  `SleepAnalysisService`, `HRVAnalysisService`, or `ImportService`.
 - No sample fixture import file has been added to the repo (`*.zip` and
   `apple_health_export/` are gitignored; `data_tmp/` in the working tree is local-only and
   untracked).
 
 ## Next Recommended Phase
-- Continue Phase 6 (Expansion Pass) per `docs/implementation-plan.md`:
-  - Implement the approved read-only Imports / Data Manager plan: database status, aggregate
-    cards, metric inventory, latest 50 import attempts, and selection-driven warning/failure
-    details. Do not add delete, retry, export, or database-edit controls in this slice.
-- Alongside UI work, close the test-coverage gap for `HealthDataParser`, `SleepAnalysisService`,
+- Close the test-coverage gap for `HealthDataParser`, `SleepAnalysisService`,
   `HRVAnalysisService`, and `ImportService` — these are pure-logic services with no Qt/DB
   dependency (aside from `ImportService`'s `DatabaseManager` calls, which can be faked) and are
   currently the least-tested layer relative to their complexity.
 
 ## Suggested Resume Checklist
-1. Read `docs/superpowers/specs/2026-08-02-imports-data-manager-design.md` and execute
-   `docs/superpowers/plans/2026-08-02-imports-data-manager.md` task by task.
-2. Review:
-   - `app/services/import_service.py` and `app/database/manager.py` for what's already
-     available to surface on an Imports page (`list_recent_imports`, `import_history.notes`).
-   - `app/ui/pages/hrv_page.py` or `trends_page.py` as the current template for a fully
-     implemented (non-placeholder) page.
-3. Build a read model + `DashboardController` method for import history, following the existing
-   `load_sleep_summary`/`load_hrv_summary` pattern.
-4. Add unit tests for `HealthDataParser`, `SleepAnalysisService`, and `HRVAnalysisService`
+1. Read `docs/implementation-summary-2026-08-02-imports-data-manager.md` and the authoritative
+   design/plan under `docs/superpowers/` before extending Imports/Data Manager.
+2. Preserve its read-only boundary: do not add delete, retry, export, credentials, fingerprint,
+   or database-maintenance controls without an approved follow-on design.
+3. Add unit tests for `HealthDataParser`, `SleepAnalysisService`, and `HRVAnalysisService`
    before extending them further.
 
 ## Verification Performed
-- The 2026-08-02 update is documentation-only and was based on a current source-code, test,
-  schema, and recent-commit review. `git diff --check` passed; application tests were not rerun
-  because no runtime code changed.
-- The latest recorded full live-suite result in `AGENTS.md` is 47 passed for the Activity slice;
-  focused Settings tests were added afterward. Re-run the plan's focused and full verification
-  commands before treating the future Imports/Data Manager implementation as complete.
+- Imports/Data Manager has focused transformation, controller, and offscreen UI coverage in
+  `tests/test_import_history_service.py`, `tests/test_dashboard_controller.py`, and
+  `tests/test_imports_page.py`. See
+  `docs/implementation-summary-2026-08-02-imports-data-manager.md` for the final recorded
+  command results and live-MariaDB limitations.
 
 ## Run Instructions
 ```bash

@@ -191,11 +191,13 @@ Because the HRV graph is already in place, the first Phase 6 priority should be 
   - simple comparison views
   - rule-based insights such as weekday versus weekend sleep or bedtime drift
 - Imports / Data Manager page:
-  - read-only database status and aggregate import/storage cards
-  - metric inventory with counts, date coverage, and units
-  - latest 50 import attempts with selection-driven warnings, duplicate context, and failures
-  - manual and post-import refresh without destructive data controls
+  - implemented read-only database status and aggregate import/storage cards
+  - implemented metric inventory with counts, date coverage, and units
+  - implemented latest-50 history with selection-driven warnings, duplicate context, and failures
+  - implemented manual and post-import refresh without destructive data controls
+  - authoritative design: `docs/superpowers/specs/2026-08-02-imports-data-manager-design.md`
   - detailed execution plan: `docs/superpowers/plans/2026-08-02-imports-data-manager.md`
+  - handoff: `docs/implementation-summary-2026-08-02-imports-data-manager.md`
 - Settings page:
   - database location setting
   - default date range
