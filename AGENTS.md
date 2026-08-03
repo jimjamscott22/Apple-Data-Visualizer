@@ -16,8 +16,20 @@ This is a PySide6 desktop app that requires a running MariaDB server (a hard dep
 ## Implementation Summary
 
 ### 2026-08-02
-- Corrected stale project-state documentation: Activity is a completed DB-backed analytics
-  page, while Imports/Data Manager is the only remaining navigation placeholder.
+- Completed the Imports / Data Manager slice and replaced its navigation placeholder with the
+  read-only `ImportsPage`. The dashboard displays connection status, four database-wide
+  aggregates, record inventory, the latest 50 import attempts, and selection-driven warnings,
+  duplicate context, or failure details.
+- Added immutable imports read models, `ImportHistoryService`, focused database reads, and
+  `DashboardController.load_imports_summary(limit=50)`. The page never receives a database
+  password or fingerprint; it has no delete, retry, export, credential-editing, or maintenance
+  controls. Refresh uses the existing import-result flow and preserves the selected history ID.
+- Added focused transformation, controller, and offscreen page coverage in
+  `tests/test_import_history_service.py`, `tests/test_dashboard_controller.py`, and
+  `tests/test_imports_page.py`. See
+  `docs/implementation-summary-2026-08-02-imports-data-manager.md` for verification details.
+- The preceding planning-only entry is retained below for historical context.
+
 - Approved a read-only boundary for Imports/Data Manager and added its authoritative design at
   `docs/superpowers/specs/2026-08-02-imports-data-manager-design.md`: database status, aggregate
   cards, metric inventory, latest 50 import attempts, and selection-driven warning/failure

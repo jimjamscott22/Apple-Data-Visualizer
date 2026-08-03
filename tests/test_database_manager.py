@@ -148,6 +148,98 @@ class TestPersistImportAndDuplicateDetection:
         assert statuses["export-copy.xml"] == "duplicate"
 
 
+class TestImportsDashboardReads:
+    def test_returns_import_statistics_metric_inventory_and_safe_recent_history(self, db_manager):
+        older_import_id = db_manager.persist_import(
+            file_path="/tmp/older-export.xml",
+            file_name="older-export.xml",
+            file_size=100,
+            file_fingerprint="dashboard-fingerprint-a",
+            source_type="xml",
+            records=[
+                _record("step_count", "2026-06-01 08:00:00", 100.0, unit="count"),
+                _record("step_count", "2026-06-03 08:00:00", 200.0, unit="count"),
+            ],
+            warnings=["unsupported metric", "missing metadata"],
+        )
+        db_manager.persist_import(
+            file_path="/tmp/newer-export.xml",
+            file_name="newer-export.xml",
+            file_size=200,
+            file_fingerprint="dashboard-fingerprint-b",
+            source_type="xml",
+            records=[_record("heart_rate", "2026-06-02 09:00:00", 72.0, unit="bpm")],
+            warnings=["missing source"],
+        )
+        db_manager.log_duplicate_import_attempt(
+            file_path="/tmp/duplicate-export.xml",
+            file_name="duplicate-export.xml",
+            file_size=100,
+            file_fingerprint="dashboard-fingerprint-a",
+            duplicate_of_id=older_import_id,
+        )
+
+        statistics = db_manager.get_import_statistics()
+        assert statistics == {
+            "completed_imports": 2,
+            "stored_records": 3,
+            "warning_count": 3,
+            "duplicate_attempts": 1,
+        }
+
+        inventory = db_manager.get_record_inventory()
+        assert inventory == [
+            {
+                "metric_name": "step_count",
+                "record_count": 2,
+                "first_recorded_at": "2026-06-01 08:00:00",
+                "last_recorded_at": "2026-06-03 08:00:00",
+                "unit": "count",
+            },
+            {
+                "metric_name": "heart_rate",
+                "record_count": 1,
+                "first_recorded_at": "2026-06-02 09:00:00",
+                "last_recorded_at": "2026-06-02 09:00:00",
+                "unit": "bpm",
+            },
+        ]
+
+        recent = db_manager.list_recent_imports()
+        assert [row["file_name"] for row in recent] == [
+            "duplicate-export.xml",
+            "newer-export.xml",
+            "older-export.xml",
+        ]
+        assert set(recent[0]) == {
+            "id",
+            "file_path",
+            "file_name",
+            "file_size",
+            "import_status",
+            "duplicate_detected",
+            "record_count",
+            "warning_count",
+            "imported_at",
+            "notes",
+        }
+        assert "file_fingerprint" not in recent[0]
+        assert recent[0]["duplicate_detected"] == 1
+        assert db_manager.list_recent_imports(limit=2) == recent[:2]
+
+        for index in range(49):
+            db_manager.log_duplicate_import_attempt(
+                file_path=f"/tmp/oversized-{index}.xml",
+                file_name=f"oversized-{index}.xml",
+                file_size=100,
+                file_fingerprint="dashboard-fingerprint-a",
+                duplicate_of_id=older_import_id,
+            )
+
+        oversized_history = db_manager.list_recent_imports(limit=51)
+        assert len(oversized_history) == 50
+
+
 class TestBeginAppendCompleteImportTransaction:
     def test_successful_import_commits_records_and_status(self, db_manager):
         with db_manager.connect() as connection:

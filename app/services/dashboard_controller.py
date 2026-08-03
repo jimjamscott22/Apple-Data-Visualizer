@@ -6,10 +6,12 @@ from app.database.manager import DatabaseManager
 from app.models.activity import ActivitySummaryData
 from app.models.dashboard import ImportStatusSummary, MetricCardData, OverviewData
 from app.models.hrv import HRVSummaryData
+from app.models.imports import DatabaseStatusData, ImportsSummaryData
 from app.models.sleep import SleepNightRecord, SleepSummaryData
 from app.models.trends import TrendsSummaryData
 from app.services.activity_analysis_service import ActivityAnalysisService
 from app.services.hrv_analysis_service import HRVAnalysisService
+from app.services.import_history_service import ImportHistoryService
 from app.services.trends_analysis_service import TrendsAnalysisService
 
 
@@ -20,11 +22,13 @@ class DashboardController:
         hrv_analysis_service: HRVAnalysisService,
         trends_analysis_service: TrendsAnalysisService,
         activity_analysis_service: ActivityAnalysisService,
+        import_history_service: ImportHistoryService,
     ) -> None:
         self.database_manager = database_manager
         self.hrv_analysis_service = hrv_analysis_service
         self.trends_analysis_service = trends_analysis_service
         self.activity_analysis_service = activity_analysis_service
+        self.import_history_service = import_history_service
 
     def load_overview(self) -> OverviewData:
         snapshot = self.database_manager.get_overview_snapshot()
@@ -190,6 +194,23 @@ class DashboardController:
             "walking_running_distance", days=days
         )
         return self.activity_analysis_service.compute_summary(step_rows, distance_rows, days)
+
+    def load_imports_summary(self, limit: int = 50) -> ImportsSummaryData:
+        """Load the read-only Imports/Data Manager model without credential fields."""
+        settings = self.database_manager.settings
+        database_status = DatabaseStatusData(
+            status="Connected",
+            host=settings.host,
+            port=settings.port,
+            database=settings.database,
+            user=settings.user,
+        )
+        return self.import_history_service.build_summary(
+            database_status=database_status,
+            statistics_row=self.database_manager.get_import_statistics(),
+            inventory_rows=self.database_manager.get_record_inventory(),
+            history_rows=self.database_manager.list_recent_imports(limit=limit),
+        )
 
     def _format_hours(self, value: float | None) -> str:
         if value is None:

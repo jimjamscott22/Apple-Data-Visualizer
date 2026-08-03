@@ -570,17 +570,51 @@ class DatabaseManager:
                 )
                 return cursor.fetchall()
 
-    def list_recent_imports(self, limit: int = 10) -> list[dict]:
+    def get_import_statistics(self) -> dict:
+        """Return aggregate import and record counts for the data manager."""
         with self.connect() as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT file_name, import_status, record_count, warning_count, imported_at
+                    SELECT
+                      (SELECT COUNT(*) FROM import_history WHERE import_status = 'completed') AS completed_imports,
+                      (SELECT COUNT(*) FROM records) AS stored_records,
+                      COALESCE((SELECT SUM(warning_count) FROM import_history), 0) AS warning_count,
+                      (SELECT COUNT(*) FROM import_history
+                       WHERE import_status = 'duplicate' OR duplicate_detected = 1) AS duplicate_attempts
+                    """
+                )
+                return cursor.fetchone()
+
+    def get_record_inventory(self) -> list[dict]:
+        """Return record counts and coverage grouped by Apple Health metric."""
+        with self.connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT metric_name, COUNT(*) AS record_count,
+                           MIN(start_at) AS first_recorded_at, MAX(start_at) AS last_recorded_at,
+                           MAX(unit) AS unit
+                    FROM records
+                    GROUP BY metric_name
+                    ORDER BY record_count DESC, metric_name ASC
+                    """
+                )
+                return cursor.fetchall()
+
+    def list_recent_imports(self, limit: int = 50) -> list[dict]:
+        effective_limit = min(limit, 50)
+        with self.connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT id, file_path, file_name, file_size, import_status,
+                           duplicate_detected, record_count, warning_count, imported_at, notes
                     FROM import_history
                     ORDER BY imported_at DESC, id DESC
                     LIMIT %s
                     """,
-                    (limit,),
+                    (effective_limit,),
                 )
                 return cursor.fetchall()
 
