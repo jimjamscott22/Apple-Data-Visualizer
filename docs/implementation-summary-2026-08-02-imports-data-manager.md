@@ -38,12 +38,18 @@ wrap and can be selected for troubleshooting.
 
 ## Verification
 
-The final command results are recorded in the Task 6 report at
-`.superpowers/sdd/2026-08-02-imports-data-manager/task-6-report.md`. The focused coverage spans
-the pure transformation, controller orchestration/privacy, and offscreen Qt rendering paths.
+- `QT_QPA_PLATFORM=offscreen uv run pytest tests/test_import_history_service.py tests/test_dashboard_controller.py tests/test_imports_page.py -q`
+  — 16 passed.
+- `uv run pytest -q` — 55 passed, 14 skipped.
+- `uv run python -m compileall app main.py` — passed.
+- `git diff --check` — passed.
+- A direct offscreen Qt interaction checklist passed for empty and populated data, completed
+  warnings, duplicate and failed details, manual and post-import refresh, keyboard row
+  selection, and password/fingerprint privacy.
 
-Live MariaDB round-trip tests depend on a reachable configured server. Any unavailable-server
-skips are reported separately from test failures rather than treated as a passing live check.
+The 14 full-suite skips are the live MariaDB round-trip checks. A TCP probe of
+`127.0.0.1:3306` failed during final verification, so no passing live-database result is
+claimed.
 
 ## Follow-up
 
