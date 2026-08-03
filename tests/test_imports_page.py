@@ -5,15 +5,24 @@ import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QLabel, QPushButton
+from PySide6.QtWidgets import QApplication, QLabel, QMessageBox, QPushButton
 
+from app.database.config import DatabaseSettings
+from app.models.activity import ActivitySummaryData
+from app.models.dashboard import OverviewData
+from app.models.hrv import HRVSummaryData
 from app.models.imports import (
     DatabaseStatusData,
     ImportHistoryRecord,
+    ImportResult,
     ImportStatistics,
     ImportsSummaryData,
     MetricInventoryRecord,
 )
+from app.models.sleep import SleepSummaryData
+from app.models.trends import TrendsSummaryData
+from app.preferences import AppPreferences
+from app.ui.main_window import MainWindow
 from app.ui.pages.imports_page import ImportsPage
 
 
@@ -179,3 +188,78 @@ def test_render_preserves_selected_import_and_refresh_signal_emits():
     )
     refresh_button.click()
     assert emitted == [True]
+
+
+class _DashboardControllerFake:
+    def __init__(self) -> None:
+        self.calls: dict[str, int] = {}
+
+    def _record_call(self, name: str) -> None:
+        self.calls[name] = self.calls.get(name, 0) + 1
+
+    def load_overview(self) -> OverviewData:
+        self._record_call("overview")
+        return OverviewData()
+
+    def load_sleep_summary(self, *, days: int) -> SleepSummaryData:
+        self._record_call("sleep")
+        return SleepSummaryData(days, None, None, None, None, None, None)
+
+    def load_activity_summary(self, *, days: int) -> ActivitySummaryData:
+        self._record_call("activity")
+        return ActivitySummaryData(days, 10_000, 0, 0, None, None, None, None, None, None)
+
+    def load_hrv_summary(self) -> HRVSummaryData:
+        self._record_call("hrv")
+        return HRVSummaryData(None, None, None, None, "insufficient_data", None, None)
+
+    def load_trends_summary(self, *, days: int) -> TrendsSummaryData:
+        self._record_call("trends")
+        return TrendsSummaryData(days)
+
+    def load_imports_summary(self, *, limit: int) -> ImportsSummaryData:
+        assert limit == 50
+        self._record_call("imports")
+        return _summary()
+
+
+class _PreferenceStoreFake:
+    def last_page_index(self) -> int:
+        return 0
+
+    def set_last_page_index(self, index: int) -> None:
+        pass
+
+
+def _main_window(controller: _DashboardControllerFake) -> MainWindow:
+    return MainWindow(
+        database_settings=DatabaseSettings("db.example.test", 3307, "health", "reader", "secret"),
+        dashboard_controller=controller,
+        import_service=object(),
+        preference_store=_PreferenceStoreFake(),
+        preferences=AppPreferences(restore_last_page=False),
+        app_version="test",
+    )
+
+
+def test_main_window_refreshes_imports_on_request_and_after_failed_import(monkeypatch):
+    _application()
+    controller = _DashboardControllerFake()
+    window = _main_window(controller)
+
+    initial_calls = dict(controller.calls)
+    window.imports_page.refresh_requested.emit()
+    assert controller.calls["imports"] == initial_calls["imports"] + 1
+
+    monkeypatch.setattr(QMessageBox, "warning", lambda *args: None)
+    before_failure = dict(controller.calls)
+    window._handle_import_finished(ImportResult(False, "failed", "Unable to parse export."))
+
+    assert controller.calls["imports"] == before_failure["imports"] + 1
+    assert {
+        name: controller.calls[name]
+        for name in ("overview", "sleep", "activity", "hrv", "trends")
+    } == {
+        name: before_failure[name]
+        for name in ("overview", "sleep", "activity", "hrv", "trends")
+    }

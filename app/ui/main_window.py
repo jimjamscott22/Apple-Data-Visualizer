@@ -32,6 +32,7 @@ from app.ui.import_worker import run_import_in_background
 from app.ui.pages.activity_page import ActivityPage
 from app.ui.pages.base import OverviewPage, PlaceholderPage
 from app.ui.pages.hrv_page import HRVPage
+from app.ui.pages.imports_page import ImportsPage
 from app.ui.pages.sleep_page import SleepPage
 from app.ui.pages.settings_page import SettingsPage
 from app.ui.pages.trends_page import TrendsPage
@@ -188,6 +189,8 @@ class MainWindow(QMainWindow):
             on_range_changed=self._handle_trends_range_changed,
             initial_range=self.preferences.trends_range_days,
         )
+        self.imports_page = ImportsPage()
+        self.imports_page.refresh_requested.connect(self._refresh_imports_page)
         self.settings_page = SettingsPage(
             database_settings=self.database_settings,
             app_version=self.app_version,
@@ -200,14 +203,7 @@ class MainWindow(QMainWindow):
         self.page_stack.insertWidget(1, self._scrollable(self.sleep_page))
         self.page_stack.addWidget(self._scrollable(self.hrv_page))
         self.page_stack.addWidget(self._scrollable(self.trends_page))
-        self.page_stack.addWidget(
-            self._scrollable(
-                PlaceholderPage(
-                    "Imports page scaffold",
-                    "Reserved for import history, file metadata, and data-manager controls.",
-                )
-            )
-        )
+        self.page_stack.addWidget(self._scrollable(self.imports_page))
         self.page_stack.addWidget(self._scrollable(self.settings_page))
 
         layout.addWidget(header)
@@ -236,6 +232,7 @@ class MainWindow(QMainWindow):
         self.trends_page.render(
             self.dashboard_controller.load_trends_summary(days=self.trends_page.current_range())
         )
+        self._refresh_imports_page()
 
     def _format_data_freshness(self, overview: OverviewData) -> str:
         raw = overview.import_status.latest_data_at
@@ -256,6 +253,9 @@ class MainWindow(QMainWindow):
     def _handle_trends_range_changed(self, days: int) -> None:
         self.trends_page.render(self.dashboard_controller.load_trends_summary(days=days))
 
+    def _refresh_imports_page(self) -> None:
+        self.imports_page.render(self.dashboard_controller.load_imports_summary(limit=50))
+
     def _handle_navigation_changed(self, index: int) -> None:
         if not 0 <= index < self.page_stack.count():
             return
@@ -268,7 +268,7 @@ class MainWindow(QMainWindow):
             "Activity": "Daily activity analysis — steps, walking/running distance, active-day streaks, and per-day history.",
             "Heart": "Heart Rate Variability (HRV) analysis — latest SDNN, 7- and 30-day averages, trend direction, and daily history.",
             "Trends": "Cross-metric relationships — sleep vs next-day HRV and resting HR, steps vs sleep, and weekday/weekend patterns.",
-            "Imports": "Reserved for import history and duplicate-detection visibility.",
+            "Imports": "Database status, record inventory, and the 50 most recent import attempts.",
             "Settings": "Analysis defaults, display preferences, and application information.",
         }
         page_name = page_names[index]
@@ -324,6 +324,7 @@ class MainWindow(QMainWindow):
                 detail += f"\n\nWarnings recorded: {result.warning_count}."
             QMessageBox.information(self, title, detail)
         else:
+            self._refresh_imports_page()
             QMessageBox.warning(self, "Import Failed", result.message)
 
     def _navigate_to_settings(self) -> None:
