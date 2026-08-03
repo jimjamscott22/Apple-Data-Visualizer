@@ -23,7 +23,7 @@ from app.models.sleep import SleepSummaryData
 from app.models.trends import TrendsSummaryData
 from app.preferences import AppPreferences
 from app.ui.main_window import MainWindow
-from app.ui.pages.imports_page import ImportsPage
+from app.ui.pages.imports_page import ImportsPage, _detail_message
 
 
 def _application() -> QApplication:
@@ -200,6 +200,25 @@ def test_render_preserves_selected_import_and_refresh_signal_emits():
     )
     refresh_button.click()
     assert emitted == [True]
+
+
+def test_completed_import_with_missing_warning_details_uses_neutral_copy():
+    record = ImportHistoryRecord(
+        31,
+        "legacy.xml",
+        "C:/Health/legacy.xml",
+        512,
+        "completed",
+        "Completed",
+        8,
+        2,
+        "2026-08-02 09:00:00",
+        warnings=(),
+    )
+
+    assert _detail_message(record) == (
+        "2 parser warnings were recorded, but warning details are unavailable."
+    )
 
 
 class _DashboardControllerFake:

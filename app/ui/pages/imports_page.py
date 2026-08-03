@@ -368,6 +368,12 @@ def _detail_message(record: ImportHistoryRecord) -> str:
     if record.status == "completed":
         if record.warnings:
             return "Parser warnings:\n" + "\n".join(f"• {warning}" for warning in record.warnings)
+        if record.warning_count:
+            noun = "warning was" if record.warning_count == 1 else "warnings were"
+            return (
+                f"{record.warning_count} parser {noun} recorded, "
+                "but warning details are unavailable."
+            )
         return "No parser warnings were recorded."
     if record.status == "duplicate":
         reference = (
