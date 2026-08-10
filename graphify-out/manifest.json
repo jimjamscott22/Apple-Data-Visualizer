@@ -1,0 +1,342 @@
+{
+  ".claude/settings.local.json": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "17f19f308dfa8b9ebbad655355507544",
+    "semantic_hash": "17f19f308dfa8b9ebbad655355507544"
+  },
+  "app/__init__.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "105e192ba8bb2958a0bda04fd7cc938c",
+    "semantic_hash": "105e192ba8bb2958a0bda04fd7cc938c"
+  },
+  "app/charts/__init__.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "348d445d8d22baaed8af69a699cd3e5e",
+    "semantic_hash": "348d445d8d22baaed8af69a699cd3e5e"
+  },
+  "app/config.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "9b1f098c39bc3dddbe595ce9705eb6de",
+    "semantic_hash": "9b1f098c39bc3dddbe595ce9705eb6de"
+  },
+  "app/database/__init__.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "54abce1b098226a47a620663b1b56636",
+    "semantic_hash": "54abce1b098226a47a620663b1b56636"
+  },
+  "app/database/config.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "e9ad2fffb5814ceab3b618afe165c25d",
+    "semantic_hash": "e9ad2fffb5814ceab3b618afe165c25d"
+  },
+  "app/database/errors.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "86dc57f46e16cb16ba61221b308421d6",
+    "semantic_hash": "86dc57f46e16cb16ba61221b308421d6"
+  },
+  "app/database/manager.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "1ad9e323368207bad2eba7a6538c66f2",
+    "semantic_hash": "1ad9e323368207bad2eba7a6538c66f2"
+  },
+  "app/database/schema.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "48fef771f6bc9d3c44be2eea993ea298",
+    "semantic_hash": "48fef771f6bc9d3c44be2eea993ea298"
+  },
+  "app/main.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "9453b8ab666f83405c32b0e381decaae",
+    "semantic_hash": "9453b8ab666f83405c32b0e381decaae"
+  },
+  "app/models/__init__.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "ef1688e5b70f3281dab7cbd7d7b71349",
+    "semantic_hash": "ef1688e5b70f3281dab7cbd7d7b71349"
+  },
+  "app/models/activity.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "675df2446799f00df2b1c13ebf677b44",
+    "semantic_hash": "675df2446799f00df2b1c13ebf677b44"
+  },
+  "app/models/dashboard.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "5124629950061367091723d68da2961e",
+    "semantic_hash": "5124629950061367091723d68da2961e"
+  },
+  "app/models/hrv.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "9835a9363b4ed2ecf2cc8490de25a4eb",
+    "semantic_hash": "9835a9363b4ed2ecf2cc8490de25a4eb"
+  },
+  "app/models/imports.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "d2b7caaf56ce59a99f0560af87bf0769",
+    "semantic_hash": "d2b7caaf56ce59a99f0560af87bf0769"
+  },
+  "app/models/sleep.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "b464a75364cdf72e8cbdb930c34ed5da",
+    "semantic_hash": "b464a75364cdf72e8cbdb930c34ed5da"
+  },
+  "app/models/trends.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "e40489f61bbf1701c3f9dcf03d1d998d",
+    "semantic_hash": "e40489f61bbf1701c3f9dcf03d1d998d"
+  },
+  "app/parser/__init__.py": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "1e45b42eb59842e10126dbda34d30405",
+    "semantic_hash": "1e45b42eb59842e10126dbda34d30405"
+  },
+  "app/parser/health_data_parser.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "091d8f2c8c1706f126ace61b1409d261",
+    "semantic_hash": "091d8f2c8c1706f126ace61b1409d261"
+  },
+  "app/preferences.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "71e2200a1bfc982543d97aa463539786",
+    "semantic_hash": "71e2200a1bfc982543d97aa463539786"
+  },
+  "app/services/__init__.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "7b933ece82b73122eb58cf631a384f06",
+    "semantic_hash": "7b933ece82b73122eb58cf631a384f06"
+  },
+  "app/services/activity_analysis_service.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "f71ebe0ad7493d436582821198622b90",
+    "semantic_hash": "f71ebe0ad7493d436582821198622b90"
+  },
+  "app/services/dashboard_controller.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "89e1e062f210e3b7b3ca5fa78cf143b3",
+    "semantic_hash": "89e1e062f210e3b7b3ca5fa78cf143b3"
+  },
+  "app/services/hrv_analysis_service.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "efb7a3cade4680bf4563f168f7c16a96",
+    "semantic_hash": "efb7a3cade4680bf4563f168f7c16a96"
+  },
+  "app/services/import_history_service.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "550028341bacaad1cdfc4ca2505ef6f7",
+    "semantic_hash": "550028341bacaad1cdfc4ca2505ef6f7"
+  },
+  "app/services/import_service.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "65e5c60312cab7d8bb1b62edea80295d",
+    "semantic_hash": "65e5c60312cab7d8bb1b62edea80295d"
+  },
+  "app/services/sleep_analysis_service.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "e44f9f78c8109135b8effad91d04b662",
+    "semantic_hash": "e44f9f78c8109135b8effad91d04b662"
+  },
+  "app/services/trends_analysis_service.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "18c56a67ca9c9d2125c48bffa6d52a6b",
+    "semantic_hash": "18c56a67ca9c9d2125c48bffa6d52a6b"
+  },
+  "app/theme.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "9cad261a7eee7d1c942113c14aa0c936",
+    "semantic_hash": "9cad261a7eee7d1c942113c14aa0c936"
+  },
+  "app/ui/__init__.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "efd82dcca6ec9cd88b6a686fb05343e0",
+    "semantic_hash": "efd82dcca6ec9cd88b6a686fb05343e0"
+  },
+  "app/ui/import_worker.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "85110461ea827e87d5e2accf7b0ea531",
+    "semantic_hash": "85110461ea827e87d5e2accf7b0ea531"
+  },
+  "app/ui/main_window.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "8f7ca189046fa7ebaf48279e8409d404",
+    "semantic_hash": "8f7ca189046fa7ebaf48279e8409d404"
+  },
+  "app/ui/pages/__init__.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "6d0e8b562dd3b20678a6755d80a10e4c",
+    "semantic_hash": "6d0e8b562dd3b20678a6755d80a10e4c"
+  },
+  "app/ui/pages/activity_page.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "263ad1738e054beaf33b09e55f207cf9",
+    "semantic_hash": "263ad1738e054beaf33b09e55f207cf9"
+  },
+  "app/ui/pages/base.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "2b636ff9ce9527c5909a6170ff39bf0f",
+    "semantic_hash": "2b636ff9ce9527c5909a6170ff39bf0f"
+  },
+  "app/ui/pages/hrv_page.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "938ddda0b4b2ed5b97a52381643f2fac",
+    "semantic_hash": "938ddda0b4b2ed5b97a52381643f2fac"
+  },
+  "app/ui/pages/imports_page.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "da8e77000db9f428732b4036483422bd",
+    "semantic_hash": "da8e77000db9f428732b4036483422bd"
+  },
+  "app/ui/pages/settings_page.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "308be3a061ae54598efc2a27f4433dab",
+    "semantic_hash": "308be3a061ae54598efc2a27f4433dab"
+  },
+  "app/ui/pages/sleep_page.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "2d48826e80422f319426a0497665f530",
+    "semantic_hash": "2d48826e80422f319426a0497665f530"
+  },
+  "app/ui/pages/trends_page.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "3439154a780b9a8733c3dc181b4f621d",
+    "semantic_hash": "3439154a780b9a8733c3dc181b4f621d"
+  },
+  "app/utils/__init__.py": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "dff685b6a063816dda130697d1f9508a",
+    "semantic_hash": "dff685b6a063816dda130697d1f9508a"
+  },
+  "main.py": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "844d50bc3e082f32bd3d1a2ba68e78a0",
+    "semantic_hash": "844d50bc3e082f32bd3d1a2ba68e78a0"
+  },
+  "pyproject.toml": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "001e67dd035df6555a8755383bf7a8d2",
+    "semantic_hash": "001e67dd035df6555a8755383bf7a8d2"
+  },
+  "tests/test_activity_analysis_service.py": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "e90fa1b51c3162a753a0231da5ccbeab",
+    "semantic_hash": "e90fa1b51c3162a753a0231da5ccbeab"
+  },
+  "tests/test_dashboard_controller.py": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "25482049cb8b0a8f82bc7088c39c1b3e",
+    "semantic_hash": "25482049cb8b0a8f82bc7088c39c1b3e"
+  },
+  "tests/test_database_config.py": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "f8453131763ea2da2fb76199fe6cd7fa",
+    "semantic_hash": "f8453131763ea2da2fb76199fe6cd7fa"
+  },
+  "tests/test_database_manager.py": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "ba56d737d6c9ffa5d5ecad1123774319",
+    "semantic_hash": "ba56d737d6c9ffa5d5ecad1123774319"
+  },
+  "tests/test_database_schema.py": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "6f952f30c64f64db7d2e2f63ea175764",
+    "semantic_hash": "6f952f30c64f64db7d2e2f63ea175764"
+  },
+  "tests/test_import_history_service.py": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "092d943930e0a4bc2058c096db8cf899",
+    "semantic_hash": "092d943930e0a4bc2058c096db8cf899"
+  },
+  "tests/test_imports_page.py": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "874e843626a3fa43a1d8a6344962fcd1",
+    "semantic_hash": "874e843626a3fa43a1d8a6344962fcd1"
+  },
+  "tests/test_preferences.py": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "c93dd5ccfc52159cf565d82edcedb14d",
+    "semantic_hash": "c93dd5ccfc52159cf565d82edcedb14d"
+  },
+  "tests/test_trends_analysis_service.py": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "4cf2823914bfb48b50c6aa7b6524f0a0",
+    "semantic_hash": "4cf2823914bfb48b50c6aa7b6524f0a0"
+  },
+  "AGENTS.md": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "e88efedfda343d4b92696be64e0bb83d",
+    "semantic_hash": "e88efedfda343d4b92696be64e0bb83d"
+  },
+  "CLAUDE.md": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "ae0782bcfeff030a9726c5753f2dfc00",
+    "semantic_hash": "ae0782bcfeff030a9726c5753f2dfc00"
+  },
+  "README.md": {
+    "mtime": 1786401989.5226216,
+    "ast_hash": "673d804da4567adb9efcae78da29273b",
+    "semantic_hash": "673d804da4567adb9efcae78da29273b"
+  },
+  "docs/Apple-Health-Visualizer overview design/design_handoff_overview_1c/Overview Options.dc.html": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "276dc7c2c224888f08948c2b60a78a61",
+    "semantic_hash": "276dc7c2c224888f08948c2b60a78a61"
+  },
+  "docs/Apple-Health-Visualizer overview design/design_handoff_overview_1c/README.md": {
+    "mtime": 1786401989.5266213,
+    "ast_hash": "378faa2e01f660f8ae02a017ba51dce2",
+    "semantic_hash": "378faa2e01f660f8ae02a017ba51dce2"
+  },
+  "docs/UI_DESIGN_REVIEW.md": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "fdd96e15f9d8c7592d0503f23d542c90",
+    "semantic_hash": "fdd96e15f9d8c7592d0503f23d542c90"
+  },
+  "docs/implementation-plan.md": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "1de413acc0b6dc1043eb88da8158a6ee",
+    "semantic_hash": "1de413acc0b6dc1043eb88da8158a6ee"
+  },
+  "docs/implementation-summary-2026-08-02-imports-data-manager-planning.md": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "0ac0f5876ccb6d8b7bb0cf960865d363",
+    "semantic_hash": "0ac0f5876ccb6d8b7bb0cf960865d363"
+  },
+  "docs/implementation-summary-2026-08-02-imports-data-manager.md": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "23b3a003ee3fdbf193a511751d809377",
+    "semantic_hash": "23b3a003ee3fdbf193a511751d809377"
+  },
+  "docs/mariadb-migration-plan.md": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "e2fa085c0dc153a086a5ab1722c8625b",
+    "semantic_hash": "e2fa085c0dc153a086a5ab1722c8625b"
+  },
+  "docs/mariadb-migration-spec.md": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "ffe8dfd2bcbe8760a5c8947edae07266",
+    "semantic_hash": "ffe8dfd2bcbe8760a5c8947edae07266"
+  },
+  "docs/spec-sheet.md": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "901079d1ebeb65ca405b189e468cf96d",
+    "semantic_hash": "901079d1ebeb65ca405b189e468cf96d"
+  },
+  "docs/superpowers/plans/2026-08-02-imports-data-manager.md": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "88566db4f779966eb1016980edf0c17d",
+    "semantic_hash": "88566db4f779966eb1016980edf0c17d"
+  },
+  "docs/superpowers/specs/2026-08-02-imports-data-manager-design.md": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "01b49a3789c1057f742deb5e7dc4f9ef",
+    "semantic_hash": "01b49a3789c1057f742deb5e7dc4f9ef"
+  },
+  "project_state.md": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "816e6427dd8cc1bb0703029a6494194b",
+    "semantic_hash": "816e6427dd8cc1bb0703029a6494194b"
+  },
+  "docs/Apple-Health-Visualizer overview design/design_handoff_overview_1c/overview_1c.png": {
+    "mtime": 1786401989.5306208,
+    "ast_hash": "9a476fd7cbdcc647480e39cfe9c48379",
+    "semantic_hash": "9a476fd7cbdcc647480e39cfe9c48379"
+  }
+}
