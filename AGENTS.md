@@ -15,6 +15,15 @@ This is a PySide6 desktop app that requires a running MariaDB server (a hard dep
 
 ## Implementation Summary
 
+### 2026-08-10
+- Built a Graphify knowledge graph for the repository (`/graphify .`): 68 files
+  indexed (52 code, 15 docs, 1 image) into 590 nodes, 1,461 edges, and 23
+  communities. Committed outputs in `graphify-out/`: `graph.html`, `GRAPH_REPORT.md`,
+  and `graph.json`. Extraction cache and local build metadata are gitignored.
+- Core hub nodes surfaced: `DatabaseManager`, `DashboardController`, `MainWindow`,
+  `TrendsAnalysisService`, and `ImportsPage`. Documentation specs link back to
+  UI design artifacts (e.g. Overview 1c mockup ↔ Imports page contract).
+
 ### 2026-08-02
 - Completed the Imports / Data Manager slice and replaced its navigation placeholder with the
   read-only `ImportsPage`. The dashboard displays connection status, four database-wide
