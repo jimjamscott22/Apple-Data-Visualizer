@@ -215,3 +215,9 @@ apple_health_export/
 
 # Local linked worktrees
 .worktrees/
+
+# Graphify — commit graph.html, graph.json, and GRAPH_REPORT.md only
+graphify-out/cache/
+graphify-out/.graphify_*
+graphify-out/cost.json
+graphify-out/manifest.json
