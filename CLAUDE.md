@@ -102,9 +102,11 @@ trend-based score — see `project_state.md`'s "Known Gaps" if extending this.
 ### Services / UI layering
 
 - `DashboardController` (`app/services/dashboard_controller.py`) is the read-side façade the
-  UI calls — it queries `DatabaseManager`, hands raw rows to `HRVAnalysisService` /
-  `TrendsAnalysisService` for statistics, and returns typed dataclasses from `app/models/`
-  (`OverviewData`, `SleepSummaryData`, `HRVSummaryData`, `TrendsSummaryData`). UI pages
+  UI calls — it queries `DatabaseManager`, hands raw rows to `SleepAnalysisService` /
+  `HRVAnalysisService` / `ActivityAnalysisService` / `TrendsAnalysisService` /
+  `ImportHistoryService` for statistics, and returns typed dataclasses from `app/models/`
+  (`OverviewData`, `SleepSummaryData`, `HRVSummaryData`, `ActivitySummaryData`,
+  `TrendsSummaryData`, `ImportsSummaryData`) via its `load_*()` methods. UI pages
   (`app/ui/pages/`) render these dataclasses and never touch `DatabaseManager` directly.
 - `app/charts/__init__.py` holds shared pyqtgraph styling/axis helpers, notably
   `ClockAxisItem` (renders "hours since prior noon" float values as HH:MM clock times for
@@ -117,8 +119,36 @@ trend-based score — see `project_state.md`'s "Known Gaps" if extending this.
 
 ### Known incomplete areas
 
-Per `project_state.md`: Activity/Imports/Settings pages are still UI placeholders/scaffolds;
-there's no import-history UI to inspect stored parser warnings yet; the consistency score is
-a heuristic rather than trend-based. Treat `project_state.md` as a running implementation log
-(update it after making changes, per its own instruction at the top) rather than a fully
-current architecture doc — verify claims against the actual code first.
+All seven nav sections are implemented — Overview, Sleep, Activity, HRV/Heart, Trends,
+Imports, Settings. None are placeholders. `ImportsPage` is the read-only import-history
+dashboard (database status, aggregate cards, metric inventory, latest-50 attempts, and a
+detail panel for parser warnings/duplicates/failures); preserve its read-only boundary —
+no delete/retry/export/credential controls without an approved follow-on design.
+
+Verified remaining gaps, roughly in priority order:
+
+- **Phase 6 Heart/Recovery slice is partial** (`docs/implementation-plan.md:162-179`).
+  `hrv_page.py` has latest/7-day/30-day HRV, trend, and CV. Still missing: the recovery
+  summary card (`Recovered`/`Normal`/`Strained`/`Low data`), baseline-delta and min/max
+  HRV cards, resting-heart-rate trend and baseline comparison, and sleep context beside
+  the heart metrics. `HRVAnalysisService` already computes per-day `min_ms`/`max_ms`
+  (with a null-collapse fallback) — that data is plumbed but unrendered.
+- **No tests for the most logic-dense modules**: `HealthDataParser`,
+  `SleepAnalysisService`, `HRVAnalysisService`, `ImportService`. All are Qt-free; only
+  `ImportService` touches `DatabaseManager` and that is fakeable — see
+  `tests/test_dashboard_controller.py` for the established fake pattern. No sample
+  `export.xml` fixture exists in the repo (`*.zip` / `apple_health_export/` are
+  gitignored), so parser tests need a hand-authored minimal fixture.
+- **Phase 7 docs partial**: `README.md` covers setup/run/import, but has no architecture
+  summary, no notes on adding new Apple Health record types, no future-enhancements
+  section, and PyInstaller-friendliness is unverified.
+- **Consistency score is a fixed-target heuristic**, not a personal baseline —
+  `SleepAnalysisService._calculate_consistency_score` penalizes deviation from hardcoded
+  targets (22:30 bedtime, 07:00 wake, 8h, 85% efficiency), so a consistent late schedule
+  scores badly. Deferred by design in the plan, not overdue.
+- **Dark is the only theme**, deliberately; Settings reports that rather than showing
+  dead controls. Not a gap to close.
+
+Treat `project_state.md` as a running implementation log (update it after making changes,
+per its own instruction at the top) rather than a fully current architecture doc — verify
+claims against the actual code first.
